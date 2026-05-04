@@ -308,12 +308,85 @@
       .sidebar { width: 220px; }
       .dash-main { margin-right: 220px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-body { padding: 28px; }
     }
 
     @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .dash-main { margin-right: 0; }
-      .dash-body { padding: 20px; }
+      .dash-layout {
+        flex-direction: column;
+      }
+      .sidebar {
+        position: static;
+        width: 100%;
+        height: auto;
+        max-height: none;
+        border-left: none;
+        border-bottom: 1px solid rgba(201,169,110,0.15);
+      }
+      .sidebar-logo {
+        padding: 18px 20px 12px;
+      }
+      .sidebar-nav {
+        padding: 10px 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .nav-section-title {
+        grid-column: 1 / -1;
+        padding: 10px 8px 2px;
+      }
+      .sidebar-link {
+        padding: 11px 12px;
+        border: 1px solid rgba(201,169,110,0.1);
+        justify-content: center;
+        text-align: center;
+      }
+      .sidebar-link.active {
+        border-right: 1px solid var(--gold);
+      }
+      .sidebar-footer {
+        padding: 12px;
+      }
+      .dash-main {
+        margin-right: 0;
+      }
+      .dash-header {
+        position: static;
+        padding: 18px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+      }
+      .dash-header > div:last-child {
+        justify-content: space-between;
+      }
+      .dash-body { padding: 18px; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .dash-card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+      }
+      .search-bar {
+        flex-direction: column;
+      }
+      .table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      table { min-width: 760px; }
+      .login-box {
+        padding: 34px 24px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .sidebar-nav {
+        grid-template-columns: 1fr;
+      }
+      .dash-body { padding: 14px; }
+      .stat-card { padding: 20px; }
     }
   </style>
 </head>
