@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PECU — المحتوى</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .content-hero-image {
+      width: 100%;
+      max-height: 420px;
+      object-fit: cover;
+      border: 1px solid rgba(201,169,110,0.18);
+      margin-bottom: 34px;
+      background: var(--dark3);
+    }
+    .content-body {
+      max-width: 920px;
+      margin: 0 auto;
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.12);
+      padding: 34px;
+      color: var(--gray-light);
+      line-height: 2;
+      font-size: 16px;
+      white-space: pre-line;
+    }
+    .content-links {
+      max-width: 920px;
+      margin: 24px auto 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .content-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 20px;
+      border: 1px solid rgba(201,169,110,0.35);
+      color: var(--gold);
+      background: rgba(201,169,110,0.08);
+      text-decoration: none;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    .content-link:hover {
+      background: var(--gold);
+      color: var(--black);
+      transform: translateY(-1px);
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-main">PECU</span>
+    <span class="logo-sub">الوحدة الخاصة لهندسة الأنتاج</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">الرئيسية</a></li>
+    <li><a href="products.html">المنتجات</a></li>
+    <li><a href="content.html?slug=scientific-research" data-page-slug="scientific-research">البحث العلمي</a></li>
+    <li><a href="content.html?slug=training" data-page-slug="training">التدريب</a></li>
+    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريب الطلاب</a></li>
+    <li><a href="content.html?slug=news" data-page-slug="news">أخبارنا</a></li>
+    <li><a href="quote.html">طلب عرض سعر</a></li>
+    <li><a href="about.html">من نحن</a></li>
+    <li><a href="contact.html">تواصل معنا</a></li>
+    <li><a href="login.html" class="nav-login-icon" title="تسجيل الدخول">👤</a></li>
+    <li><button type="button" class="nav-theme-toggle theme-toggle" title="تبديل الوضع">🌙</button></li>
+    <li><a href="dashboard.html" class="nav-cta">لوحة التحكم</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="page-header">
+  <h1 id="pageTitle">...</h1>
+  <p id="pageSummary"></p>
+</div>
+
+<section class="section" style="padding-top:40px;">
+  <div id="pageImageWrap" style="max-width:920px; margin:0 auto; display:none;">
+    <img id="pageImage" class="content-hero-image" src="" alt="">
+  </div>
+  <div id="pageBody" class="content-body">جاري تحميل المحتوى...</div>
+  <div id="pageLinks" class="content-links" style="display:none;"></div>
+</section>
+
+<footer class="footer" style="margin-top:0;">
+  <div class="footer-bottom" style="border-top:none; padding-top:0;">
+    <span>© 2024 PECU — الوحدة الخاصة لهندسة الأنتاج</span>
+    <a href="index.html" style="color:var(--gold); text-decoration:none;">← العودة للرئيسية</a>
+  </div>
+</footer>
+
+<script src="theme.js"></script>
+<script src="database.js"></script>
+<script>
+  PECUTheme.initTheme();
+  DB.init();
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+  });
+  document.getElementById('hamburger').onclick = () => {
+    const nl = document.getElementById('navLinks');
+    nl.style.display = nl.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  const slug = new URLSearchParams(location.search).get('slug') || 'training';
+  document.querySelectorAll('[data-page-slug]').forEach(a => {
+    a.classList.toggle('active', a.dataset.pageSlug === slug);
+  });
+
+  const page = DB.getSitePage(slug);
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;',
+    }[ch]));
+  }
+
+  if (!page || !page.active) {
+    document.getElementById('pageTitle').textContent = 'المحتوى غير متاح';
+    document.getElementById('pageSummary').textContent = '';
+    document.getElementById('pageBody').textContent = 'هذه الصفحة غير متاحة حالياً.';
+  } else {
+    document.title = `${page.navLabel || page.title} — PECU`;
+    document.getElementById('pageTitle').textContent = page.title || page.navLabel;
+    document.getElementById('pageSummary').textContent = page.summary || '';
+    document.getElementById('pageBody').textContent = page.body || '';
+    if (page.image) {
+      document.getElementById('pageImage').src = page.image;
+      document.getElementById('pageImageWrap').style.display = 'block';
+    }
+    const links = Array.isArray(page.links) ? page.links.filter(link => link && link.label && link.url) : [];
+    if (links.length) {
+      document.getElementById('pageLinks').innerHTML = links.map(link => {
+        const url = String(link.url || '');
+        const isExternal = /^(https?:)?\/\//i.test(url);
+        const target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
+        return `<a class="content-link" href="${escapeHtml(url)}"${target}>${escapeHtml(link.label)}</a>`;
+      }).join('');
+      document.getElementById('pageLinks').style.display = 'flex';
+    }
+  }
+</script>
+</body>
+</html>

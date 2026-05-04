@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم — PECU</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: var(--black); }
+
+    .dash-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: var(--dark);
+      border-left: 1px solid rgba(201,169,110,0.15);
+      position: fixed;
+      top: 0; right: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 30px 24px;
+      border-bottom: 1px solid rgba(201,169,110,0.15);
+    }
+
+    .sidebar-logo .logo-main {
+      font-family: 'Playfair Display', serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 4px;
+    }
+
+    .sidebar-logo .logo-sub {
+      font-size: 11px;
+      color: var(--gray);
+      letter-spacing: 2px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .sidebar-nav {
+      padding: 20px 0;
+      flex: 1;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gray);
+      padding: 16px 24px 8px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 24px;
+      color: var(--gray-light);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: right;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .sidebar-link:hover, .sidebar-link.active {
+      background: rgba(201,169,110,0.08);
+      color: var(--gold);
+    }
+
+    .sidebar-link.active {
+      border-right: 3px solid var(--gold);
+    }
+
+    .sidebar-link .icon { font-size: 18px; width: 24px; text-align: center; }
+
+    .sidebar-footer {
+      padding: 20px 24px;
+      border-top: 1px solid rgba(201,169,110,0.15);
+    }
+
+    /* Main content */
+    .dash-main {
+      margin-right: 260px;
+      flex: 1;
+      min-height: 100vh;
+    }
+
+    .dash-header {
+      background: var(--dark);
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .dash-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      color: var(--white);
+    }
+
+    .dash-header p { font-size: 13px; color: var(--gray); }
+
+    .dash-body { padding: 40px; }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.1);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover { border-color: rgba(201,169,110,0.3); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 60px; height: 60px;
+      background: radial-gradient(circle, rgba(201,169,110,0.1), transparent 70%);
+    }
+
+    .stat-label { font-size: 11px; letter-spacing: 2px; color: var(--gray); text-transform: uppercase; margin-bottom: 12px; }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 38px; font-weight: 700; color: var(--gold); line-height: 1; }
+    .stat-sub { font-size: 12px; color: var(--success); margin-top: 8px; }
+    .stat-icon { position: absolute; top: 20px; left: 20px; font-size: 28px; opacity: 0.3; }
+
+    /* Tables */
+    .dash-card {
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.1);
+      margin-bottom: 30px;
+    }
+
+    .dash-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+
+    .dash-card-header h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 18px;
+      color: var(--gold);
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead th {
+      background: rgba(201,169,110,0.06);
+      color: var(--gold);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 12px 16px;
+      text-align: right;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--gray-light);
+      vertical-align: middle;
+    }
+
+    tbody tr:hover { background: rgba(201,169,110,0.03); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .badge-new { background: rgba(80,120,200,0.15); color: #5080C8; border: 1px solid rgba(80,120,200,0.3); }
+    .badge-review { background: rgba(201,169,110,0.15); color: var(--gold); border: 1px solid rgba(201,169,110,0.3); }
+    .badge-done { background: rgba(80,200,120,0.15); color: var(--success); border: 1px solid rgba(80,200,120,0.3); }
+    .badge-reject { background: rgba(224,80,80,0.15); color: var(--danger); border: 1px solid rgba(224,80,80,0.3); }
+
+    /* Login */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--black);
+      padding: 20px;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 420px;
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.2);
+      padding: 50px 40px;
+    }
+
+    .login-box .logo-main {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--gold);
+      letter-spacing: 4px;
+      text-align: center;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .login-box .logo-sub {
+      text-align: center;
+      display: block;
+      font-size: 12px;
+      color: var(--gray);
+      letter-spacing: 3px;
+      margin-bottom: 40px;
+    }
+
+    /* Page sections */
+    .page-section { display: none; }
+    .page-section.active { display: block; }
+
+    /* Product form in modal */
+    .emoji-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .emoji-opt {
+      width: 44px; height: 44px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .emoji-opt:hover, .emoji-opt.selected {
+      border-color: var(--gold);
+      background: rgba(201,169,110,0.1);
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: var(--white);
+      padding: 10px 16px;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-bar input:focus { border-color: var(--gold); }
+
+    @media (max-width: 1024px) {
+      .sidebar { width: 220px; }
+      .dash-main { margin-right: 220px; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .dash-main { margin-right: 0; }
+      .dash-body { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage">
+  <div class="login-page">
+    <div class="login-box">
+      <span class="logo-main">PECU</span>
+      <span class="logo-sub">لوحة تحكم المدير</span>
+      <div class="form-group">
+        <label>اسم المستخدم</label>
+        <input type="text" id="loginUser" placeholder="اسم المستخدم">
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <input type="password" id="loginPass" placeholder="••••••••" onkeyup="if(event.key==='Enter')doLogin()">
+      </div>
+      <div id="loginError" style="color:var(--danger); font-size:13px; margin-bottom:16px; display:none;">
+        ⚠️ بيانات الدخول غير صحيحة
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()" style="width:100%; justify-content:center; padding:15px;">
+        <span>🔐 دخول للوحة التحكم</span>
+      </button>
+      <div style="text-align:center; margin-top:20px;">
+        <a href="index.html" style="color:var(--gray); font-size:13px; text-decoration:none;">← العودة للموقع</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashPage" style="display:none;">
+  <div class="dash-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-main">PECU</div>
+        <span class="logo-sub">لوحة التحكم</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">الرئيسية</div>
+        <button class="sidebar-link active" onclick="showSection('overview', this)">
+          <span class="icon">📊</span> نظرة عامة
+        </button>
+        <div class="nav-section-title">إدارة المحتوى</div>
+        <button class="sidebar-link" onclick="showSection('products', this)">
+          <span class="icon">🛋️</span> المنتجات
+        </button>
+        <button class="sidebar-link" onclick="showSection('pages', this)">
+          <span class="icon">📰</span> الصفحات
+        </button>
+        <button class="sidebar-link" onclick="showSection('quotes', this)">
+          <span class="icon">📋</span> طلبات العروض
+        </button>
+        <button class="sidebar-link" onclick="showSection('users', this)">
+          <span class="icon">👥</span> المستخدمون
+        </button>
+        <div class="nav-section-title">الموقع</div>
+        <a href="index.html" class="sidebar-link" target="_blank">
+          <span class="icon">🌐</span> عرض الموقع
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="sidebar-link" onclick="doLogout()" style="color:var(--danger); border:1px solid rgba(224,80,80,0.2); width:100%;">
+          <span class="icon">🚪</span> تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="dash-main">
+      <div class="dash-header">
+        <div>
+          <h1 id="sectionTitle">نظرة عامة</h1>
+          <p id="sectionDesc">مرحباً بك في لوحة تحكم PECU</p>
+        </div>
+        <div style="display:flex; gap:12px; align-items:center;">
+          <button type="button" class="btn btn-outline btn-sm theme-toggle" title="تبديل الوضع">🌙</button>
+          <span style="font-size:13px; color:var(--gray);" id="currentTime"></span>
+          <div style="width:36px; height:36px; background:var(--gold); display:flex; align-items:center; justify-content:center; font-size:18px;">👤</div>
+        </div>
+      </div>
+
+      <div class="dash-body">
+
+        <!-- OVERVIEW -->
+        <div class="page-section active" id="sec-overview">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🛋️</div>
+              <div class="stat-label">إجمالي المنتجات</div>
+              <div class="stat-value" id="st-products">0</div>
+              <div class="stat-sub">في قاعدة البيانات</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📋</div>
+              <div class="stat-label">طلبات العروض</div>
+              <div class="stat-value" id="st-quotes">0</div>
+              <div class="stat-sub" id="st-quotes-new"></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">⭐</div>
+              <div class="stat-label">منتجات مميزة</div>
+              <div class="stat-value" id="st-featured">0</div>
+              <div class="stat-sub">تظهر في الرئيسية</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">📦</div>
+              <div class="stat-label">إجمالي المخزون</div>
+              <div class="stat-value" id="st-stock">0</div>
+              <div class="stat-sub">قطعة متاحة</div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <h3>آخر طلبات العروض</h3>
+              <button class="btn btn-sm btn-outline" onclick="showSection('quotes', document.querySelector('[onclick*=quotes]'))">عرض الكل</button>
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>الاسم</th>
+                    <th>الفئة</th>
+                    <th>الهاتف</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                  </tr>
+                </thead>
+                <tbody id="recentQuotesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- PRODUCTS -->
+        <div class="page-section" id="sec-products">
+          <div class="dash-card-header" style="background:var(--dark2); border:1px solid rgba(201,169,110,0.1); padding:20px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold);">إدارة المنتجات</h3>
+            <button class="btn btn-primary btn-sm" onclick="openProductModal()"><span>+ إضافة منتج</span></button>
+          </div>
+          <div class="search-bar">
+            <input type="text" id="productSearch" placeholder="🔍 ابحث عن منتج..." oninput="renderProductsTable()">
+          </div>
+          <div class="dash-card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الأيقونة</th>
+                    <th>الاسم</th>
+                    <th>الفئة</th>
+                    <th>السعر</th>
+                    <th>المخزون</th>
+                    <th>مميز</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SITE PAGES -->
+        <div class="page-section" id="sec-pages">
+          <div class="dash-card-header" style="background:var(--dark2); border:1px solid rgba(201,169,110,0.1); padding:20px 24px; margin-bottom:20px;">
+            <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold);">إدارة صفحات الموقع</h3>
+          </div>
+          <div class="dash-card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>التاب</th>
+                    <th>العنوان</th>
+                    <th>الحالة</th>
+                    <th>آخر تحديث</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="sitePagesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUOTES -->
+        <div class="page-section" id="sec-quotes">
+          <div class="dash-card-header" style="background:var(--dark2); border:1px solid rgba(201,169,110,0.1); padding:20px 24px; margin-bottom:20px;">
+            <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold);">طلبات عروض الأسعار</h3>
+          </div>
+          <div class="search-bar">
+            <input type="text" id="quoteSearch" placeholder="🔍 ابحث في الطلبات..." oninput="renderQuotesTable()">
+            <select id="quoteStatusFilter" onchange="renderQuotesTable()" style="background:var(--dark3); border:1px solid rgba(255,255,255,0.1); color:var(--white); padding:10px 16px; font-family:'Tajawal',sans-serif;">
+              <option value="">كل الحالات</option>
+              <option value="جديد">جديد</option>
+              <option value="قيد المراجعة">قيد المراجعة</option>
+              <option value="تم الرد">تم الرد</option>
+              <option value="مرفوض">مرفوض</option>
+            </select>
+          </div>
+          <div class="dash-card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>رقم الطلب</th>
+                    <th>الاسم</th>
+                    <th>الجهة</th>
+                    <th>الفئة</th>
+                    <th>الهاتف</th>
+                    <th>البريد</th>
+                    <th>التاريخ</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="quotesTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- USERS -->
+        <div class="page-section" id="sec-users">
+          <div class="dash-card-header" style="background:var(--dark2); border:1px solid rgba(201,169,110,0.1); padding:20px 24px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold);">إدارة المستخدمين</h3>
+            <button class="btn btn-primary btn-sm" onclick="openUserModal()"><span>+ إضافة مستخدم</span></button>
+          </div>
+          <div class="search-bar">
+            <input type="text" id="userSearch" placeholder="🔍 ابحث عن مستخدم..." oninput="renderUsersTable()">
+          </div>
+          <div class="dash-card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الاسم</th>
+                    <th>البريد / اسم الدخول</th>
+                    <th>الهاتف</th>
+                    <th>الدور</th>
+                    <th>التاريخ</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- PRODUCT MODAL -->
+<div class="modal-overlay" id="productModalOverlay" onclick="if(event.target===this)closeProductModal()">
+  <div class="modal" style="max-width:700px;">
+    <div class="modal-header">
+      <h3 id="productModalTitle">إضافة منتج جديد</h3>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم المنتج *</label>
+          <input type="text" id="pName" placeholder="اسم المنتج بالعربية">
+        </div>
+        <div class="form-group">
+          <label>الفئة *</label>
+          <select id="pCategory">
+            <option value="living">غرفة المعيشة</option>
+            <option value="bedroom">غرفة النوم</option>
+            <option value="dining">غرفة السفرة</option>
+            <option value="office">أثاث مكتب</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>السعر (جنيه) *</label>
+          <input type="number" id="pPrice" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label>الكمية في المخزون</label>
+          <input type="number" id="pStock" placeholder="0" value="10">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>وصف المنتج</label>
+        <textarea id="pDesc" placeholder="وصف تفصيلي للمنتج..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>صورة / أيقونة المنتج</label>
+        <div class="emoji-picker" id="emojiPicker">
+          🛋️ 🪑 🛏️ 🚪 📚 💺 ☕ 🪴 🪞 🛁 🪟 🛒 🖼️ 🕯️ 🪔 🧸
+        </div>
+        <input type="hidden" id="pImage" value="🛋️">
+        <div style="margin-top:14px;">
+          <input type="file" id="pImageFile" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewProductImageFile(this)">
+          <small style="color:var(--gray); display:block; margin-top:6px;">يمكن رفع JPG / PNG / WEBP / GIF بحد أقصى 5MB</small>
+        </div>
+        <div id="pImagePreview" style="margin-top:12px;"></div>
+        <button type="button" class="btn btn-danger btn-sm" style="margin-top:10px;" onclick="removeProductImage()">حذف الصورة</button>
+      </div>
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="pFeatured" style="width:18px; height:18px; accent-color:var(--gold);">
+          <span>عرض كمنتج مميز في الصفحة الرئيسية</span>
+        </label>
+      </div>
+      <div id="productFormError" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none;"></div>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" onclick="closeProductModal()">إلغاء</button>
+        <button class="btn btn-primary btn-sm" onclick="saveProduct()"><span>💾 حفظ المنتج</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SITE PAGE MODAL -->
+<div class="modal-overlay" id="sitePageModalOverlay" onclick="if(event.target===this)closeSitePageModal()">
+  <div class="modal" style="max-width:760px;">
+    <div class="modal-header">
+      <h3 id="sitePageModalTitle">تعديل الصفحة</h3>
+      <button class="modal-close" onclick="closeSitePageModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="pgSlug">
+      <input type="hidden" id="pgImage">
+      <div class="form-row">
+        <div class="form-group">
+          <label>اسم التاب *</label>
+          <input type="text" id="pgNavLabel" placeholder="مثال: التدريب">
+        </div>
+        <div class="form-group">
+          <label>عنوان الصفحة *</label>
+          <input type="text" id="pgTitle" placeholder="عنوان الصفحة">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ملخص قصير</label>
+        <textarea id="pgSummary" placeholder="ملخص يظهر تحت عنوان الصفحة..." style="min-height:80px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>محتوى الصفحة</label>
+        <textarea id="pgBody" placeholder="اكتب محتوى الصفحة هنا..." style="min-height:180px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label>لينكات الصفحة</label>
+        <textarea id="pgLinks" placeholder="مثال:&#10;رابط التسجيل | https://example.com/register&#10;https://example.com/schedule" style="min-height:100px;"></textarea>
+        <small style="color:var(--gray); display:block; margin-top:6px;">اكتب كل لينك في سطر. الأفضل: عنوان اللينك | الرابط، ويمكن كتابة الرابط فقط.</small>
+      </div>
+      <div class="form-group">
+        <label>صورة الصفحة</label>
+        <input type="file" id="pgImageFile" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewSitePageImageFile(this)">
+        <small style="color:var(--gray); display:block; margin-top:6px;">JPG / PNG / WEBP / GIF بحد أقصى 5MB</small>
+        <div id="pgImagePreview" style="margin-top:12px;"></div>
+        <button type="button" class="btn btn-danger btn-sm" style="margin-top:10px;" onclick="removeSitePageImage()">حذف الصورة</button>
+      </div>
+      <div class="form-group">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer;">
+          <input type="checkbox" id="pgActive" style="width:18px; height:18px; accent-color:var(--gold);">
+          <span>إظهار الصفحة في الموقع</span>
+        </label>
+      </div>
+      <div id="sitePageFormError" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none;"></div>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" onclick="closeSitePageModal()">إلغاء</button>
+        <button class="btn btn-primary btn-sm" onclick="saveSitePage()"><span>💾 حفظ الصفحة</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModalOverlay" onclick="if(event.target===this)closeUserModal()">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <h3 id="userModalTitle">إضافة مستخدم جديد</h3>
+      <button class="modal-close" onclick="closeUserModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="uId">
+      <div class="form-row">
+        <div class="form-group">
+          <label>الاسم الكامل *</label>
+          <input type="text" id="uName" placeholder="اسم المستخدم">
+        </div>
+        <div class="form-group">
+          <label>الهاتف</label>
+          <input type="text" id="uPhone" placeholder="01000000000">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>اسم الدخول / البريد *</label>
+        <input type="text" id="uEmail" placeholder="مثال: user@example.com أو admin2">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>كلمة المرور <span id="uPassHint">*</span></label>
+          <input type="password" id="uPass" placeholder="••••••••">
+        </div>
+        <div class="form-group">
+          <label>الدور</label>
+          <select id="uRole">
+            <option value="website">Website</option>
+            <option value="dashboard">Dashboard</option>
+          </select>
+        </div>
+      </div>
+      <div id="userFormError" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none;"></div>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" onclick="closeUserModal()">إلغاء</button>
+        <button class="btn btn-primary btn-sm" onclick="saveUser()"><span>💾 حفظ المستخدم</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUOTE DETAIL MODAL -->
+<div class="modal-overlay" id="quoteDetailOverlay" onclick="if(event.target===this)closeQuoteDetail()">
+  <div class="modal" style="max-width:650px;">
+    <div class="modal-header">
+      <h3 id="quoteDetailTitle">تفاصيل الطلب</h3>
+      <button class="modal-close" onclick="closeQuoteDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="quoteDetailBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="theme.js"></script>
+<script src="database.js"></script>
+<script>
+  PECUTheme.initTheme();
+  DB.init();
+
+  // TIME
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('currentTime').textContent =
+      now.toLocaleDateString('ar-EG') + ' ' + now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+  }
+  updateTime();
+  setInterval(updateTime, 60000);
+
+  // AUTH
+  function doLogin() {
+    const u = document.getElementById('loginUser').value;
+    const p = document.getElementById('loginPass').value;
+    if (DB.checkAdmin(u, p)) {
+      DB.login();
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('dashPage').style.display = 'block';
+      loadOverview();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  }
+
+  function doLogout() {
+    DB.logout();
+    document.getElementById('dashPage').style.display = 'none';
+    document.getElementById('loginPage').style.display = 'block';
+  }
+
+  // Check auto-login
+  if (DB.isLoggedIn()) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashPage').style.display = 'block';
+    loadOverview();
+  }
+
+  // NAVIGATION
+  function showSection(name, btn) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(b => b.classList.remove('active'));
+    document.getElementById(`sec-${name}`).classList.add('active');
+    if (btn) btn.classList.add('active');
+
+    const titles = {
+      overview: ['نظرة عامة', 'إحصائيات ولمحة سريعة'],
+      products: ['إدارة المنتجات', 'إضافة وتعديل وحذف المنتجات'],
+      pages: ['إدارة صفحات الموقع', 'تعديل صفحات التدريب والبحث العلمي والأخبار'],
+      quotes: ['طلبات عروض الأسعار', 'إدارة الطلبات الواردة'],
+      users: ['إدارة المستخدمين', 'إضافة وإدارة مستخدمي الموقع واللوحة']
+    };
+    document.getElementById('sectionTitle').textContent = titles[name][0];
+    document.getElementById('sectionDesc').textContent = titles[name][1];
+
+    if (name === 'overview') loadOverview();
+    if (name === 'products') renderProductsTable();
+    if (name === 'pages') renderSitePagesTable();
+    if (name === 'quotes') renderQuotesTable();
+    if (name === 'users') renderUsersTable();
+  }
+
+  // OVERVIEW
+  function loadOverview() {
+    const products = DB.getProducts();
+    const quotes = DB.getQuotes();
+    const newQ = quotes.filter(q => q.status === 'جديد').length;
+    document.getElementById('st-products').textContent = products.length;
+    document.getElementById('st-quotes').textContent = quotes.length;
+    document.getElementById('st-quotes-new').textContent = newQ ? `${newQ} جديد` : 'لا توجد جديدة';
+    document.getElementById('st-featured').textContent = products.filter(p => p.featured).length;
+    document.getElementById('st-stock').textContent = products.reduce((s, p) => s + (parseInt(p.stock) || 0), 0);
+
+    const recent = [...quotes].reverse().slice(0, 5);
+    document.getElementById('recentQuotesTable').innerHTML = recent.length === 0
+      ? '<tr><td colspan="6" style="text-align:center; color:var(--gray); padding:30px;">لا توجد طلبات بعد</td></tr>'
+      : recent.map(q => `
+      <tr>
+        <td style="color:var(--gold); font-family:'Playfair Display',serif;">#${String(q.id).padStart(4,'0')}</td>
+        <td>${q.name}</td>
+        <td>${q.category}</td>
+        <td dir="ltr">${q.phone}</td>
+        <td>${new Date(q.createdAt).toLocaleDateString('ar-EG')}</td>
+        <td>${getBadge(q.status)}</td>
+      </tr>`).join('');
+  }
+
+  function getBadge(s) {
+    const map = { 'جديد': 'badge-new', 'قيد المراجعة': 'badge-review', 'تم الرد': 'badge-done', 'مرفوض': 'badge-reject' };
+    return `<span class="badge ${map[s] || 'badge-new'}">${s}</span>`;
+  }
+
+  function isUploadedProductImage(value) {
+    return typeof value === 'string' && /^(uploads\/|\/uploads\/|https?:\/\/|data:image\/|blob:)/i.test(value);
+  }
+
+  function productImageMarkup(value, style = '') {
+    if (isUploadedProductImage(value)) {
+      const src = String(value).replace(/"/g, '&quot;');
+      return `<img src="${src}" alt="" style="width:100%; height:100%; object-fit:cover; display:block; ${style}">`;
+    }
+    return value || '🛋️';
+  }
+
+  function productImagePreview(value) {
+    const preview = document.getElementById('pImagePreview');
+    if (!preview) return;
+    preview.innerHTML = isUploadedProductImage(value)
+      ? `<div style="width:120px; height:90px; background:var(--dark3); border:1px solid rgba(201,169,110,0.25); overflow:hidden;">${productImageMarkup(value)}</div>`
+      : `<div style="font-size:42px; color:var(--gold);">${value || '🛋️'}</div>`;
+  }
+
+  function sitePageImagePreview(value) {
+    const preview = document.getElementById('pgImagePreview');
+    if (!preview) return;
+    preview.innerHTML = value
+      ? `<div style="width:180px; height:110px; background:var(--dark3); border:1px solid rgba(201,169,110,0.25); overflow:hidden;">${productImageMarkup(value)}</div>`
+      : '<div style="color:var(--gray); font-size:13px;">لا توجد صورة حالياً</div>';
+  }
+
+  function formatSitePageLinks(links) {
+    return (Array.isArray(links) ? links : [])
+      .filter(link => link && link.label && link.url)
+      .map(link => `${link.label} | ${link.url}`)
+      .join('\n');
+  }
+
+  function parseSitePageLinks(value) {
+    return String(value || '')
+      .split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(line => {
+        let label = '';
+        let url = '';
+
+        if (line.includes('|')) {
+          const parts = line.split('|');
+          label = (parts.shift() || '').trim();
+          url = parts.join('|').trim();
+        } else {
+          const match = line.match(/(https?:\/\/\S+|www\.\S+|\S+\.\S+)/i);
+          if (match) {
+            url = match[0].trim();
+            label = line.replace(match[0], '').trim() || url;
+          } else {
+            label = line;
+          }
+        }
+
+        return { label, url };
+      })
+      .filter(link => link.label && link.url);
+  }
+
+  // PRODUCTS TABLE
+  function renderProductsTable() {
+    const search = (document.getElementById('productSearch')?.value || '').toLowerCase();
+    const catMap = { living: 'غرفة المعيشة', bedroom: 'غرفة النوم', dining: 'غرفة السفرة', office: 'أثاث مكتب' };
+    let products = DB.getProducts();
+    if (search) products = products.filter(p => p.name.toLowerCase().includes(search) || (catMap[p.category]||'').includes(search));
+
+    document.getElementById('productsTable').innerHTML = products.length === 0
+      ? '<tr><td colspan="7" style="text-align:center; color:var(--gray); padding:30px;">لا توجد منتجات</td></tr>'
+      : products.map(p => `
+      <tr>
+        <td style="width:70px;"><div style="width:54px; height:42px; background:var(--dark3); display:flex; align-items:center; justify-content:center; font-size:26px; overflow:hidden;">${productImageMarkup(p.image)}</div></td>
+        <td style="font-weight:600; color:var(--white);">${p.name}</td>
+        <td style="color:var(--gold);">${catMap[p.category] || p.category}</td>
+        <td style="font-family:'Playfair Display',serif; color:var(--gold);">${p.price.toLocaleString('ar-EG')} ج</td>
+        <td style="color:${p.stock > 5 ? 'var(--success)' : 'var(--danger)'};">${p.stock}</td>
+        <td>${p.featured ? '⭐' : '—'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" style="margin-left:6px;" onclick="openProductModal(${p.id})">✏️ تعديل</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // SITE PAGES TABLE
+  function renderSitePagesTable() {
+    const pages = DB.getSitePages();
+    document.getElementById('sitePagesTable').innerHTML = pages.length === 0
+      ? '<tr><td colspan="5" style="text-align:center; color:var(--gray); padding:30px;">لا توجد صفحات</td></tr>'
+      : pages.map(p => `
+      <tr>
+        <td style="font-weight:600; color:var(--gold);">${p.navLabel || p.nav_label}</td>
+        <td style="color:var(--white);">${p.title}</td>
+        <td><span class="badge ${p.active ? 'badge-done' : 'badge-reject'}">${p.active ? 'ظاهر' : 'مخفي'}</span></td>
+        <td>${p.updatedAt ? new Date(p.updatedAt).toLocaleDateString('ar-EG') : '—'}</td>
+        <td>
+          <a class="btn btn-sm btn-outline" style="margin-left:6px;" href="content.html?slug=${encodeURIComponent(p.slug)}" target="_blank">👁️ عرض</a>
+          <button class="btn btn-sm btn-outline" onclick="openSitePageModal('${p.slug}')">✏️ تعديل</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // QUOTES TABLE
+  function renderQuotesTable() {
+    const search = (document.getElementById('quoteSearch')?.value || '').toLowerCase();
+    const statusFilter = document.getElementById('quoteStatusFilter')?.value || '';
+    let quotes = [...DB.getQuotes()].reverse();
+    if (search) quotes = quotes.filter(q => q.name.toLowerCase().includes(search) || (q.org||'').toLowerCase().includes(search));
+    if (statusFilter) quotes = quotes.filter(q => q.status === statusFilter);
+
+    document.getElementById('quotesTable').innerHTML = quotes.length === 0
+      ? '<tr><td colspan="9" style="text-align:center; color:var(--gray); padding:30px;">لا توجد طلبات</td></tr>'
+      : quotes.map(q => `
+      <tr>
+        <td style="color:var(--gold); font-family:'Playfair Display',serif; font-weight:700;">#${String(q.id).padStart(4,'0')}</td>
+        <td style="color:var(--white); font-weight:600;">${q.name}</td>
+        <td>${q.org || '—'}</td>
+        <td>${q.category}</td>
+        <td dir="ltr">${q.phone}</td>
+        <td>${q.email}</td>
+        <td>${new Date(q.createdAt).toLocaleDateString('ar-EG')}</td>
+        <td>${getBadge(q.status)}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="openQuoteDetail(${q.id})" style="margin-left:6px;">👁️</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteQuote(${q.id})">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // USERS TABLE
+  function renderUsersTable() {
+    const search = (document.getElementById('userSearch')?.value || '').toLowerCase();
+    let users = DB.getUsers();
+    if (search) {
+      users = users.filter(u =>
+        (u.full_name || '').toLowerCase().includes(search) ||
+        (u.email || '').toLowerCase().includes(search) ||
+        (u.phone || '').toLowerCase().includes(search)
+      );
+    }
+
+    document.getElementById('usersTable').innerHTML = users.length === 0
+      ? '<tr><td colspan="6" style="text-align:center; color:var(--gray); padding:30px;">لا يوجد مستخدمون</td></tr>'
+      : users.map(u => `
+      <tr>
+        <td style="color:var(--white); font-weight:600;">${u.full_name}</td>
+        <td>${u.email}</td>
+        <td dir="ltr">${u.phone || '—'}</td>
+        <td><span class="badge ${u.role === 'dashboard' ? 'badge-done' : 'badge-review'}">${u.role}</span></td>
+        <td>${u.createdAt ? new Date(u.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" style="margin-left:6px;" onclick="openUserModal(${u.id})">✏️ تعديل</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id})">🗑️</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // PRODUCT MODAL
+  let selectedEmoji = '🛋️';
+  const emojis = ['🛋️','🪑','🛏️','🚪','📚','💺','☕','🪴','🪞','🛁','🪟','🛒','🖼️','🕯️','🪔','🧸'];
+
+  function openProductModal(id) {
+    document.getElementById('productFormError').style.display = 'none';
+    document.getElementById('pImageFile').value = '';
+    const picker = document.getElementById('emojiPicker');
+    picker.innerHTML = emojis.map(e => `<div class="emoji-opt${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}',this)">${e}</div>`).join('');
+
+    if (id) {
+      const p = DB.getProduct(id);
+      document.getElementById('productModalTitle').textContent = 'تعديل المنتج';
+      document.getElementById('pId').value = p.id;
+      document.getElementById('pName').value = p.name;
+      document.getElementById('pCategory').value = p.category;
+      document.getElementById('pPrice').value = p.price;
+      document.getElementById('pStock').value = p.stock;
+      document.getElementById('pDesc').value = p.description;
+      document.getElementById('pFeatured').checked = p.featured;
+      selectedEmoji = isUploadedProductImage(p.image) ? '🛋️' : (p.image || '🛋️');
+      document.getElementById('pImage').value = p.image;
+      picker.querySelectorAll('.emoji-opt').forEach(el => {
+        el.classList.toggle('selected', el.textContent === selectedEmoji);
+      });
+      productImagePreview(p.image);
+    } else {
+      document.getElementById('productModalTitle').textContent = 'إضافة منتج جديد';
+      document.getElementById('pId').value = '';
+      ['pName','pDesc'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pPrice').value = '';
+      document.getElementById('pStock').value = '10';
+      document.getElementById('pCategory').value = 'living';
+      document.getElementById('pFeatured').checked = false;
+      selectedEmoji = '🛋️';
+      document.getElementById('pImage').value = '🛋️';
+      productImagePreview('🛋️');
+    }
+    document.getElementById('productModalOverlay').classList.add('open');
+  }
+
+  function selectEmoji(e, el) {
+    selectedEmoji = e;
+    document.getElementById('pImage').value = e;
+    document.getElementById('pImageFile').value = '';
+    productImagePreview(e);
+    document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function removeProductImage() {
+    selectedEmoji = '🛋️';
+    document.getElementById('pImage').value = selectedEmoji;
+    document.getElementById('pImageFile').value = '';
+    productImagePreview(selectedEmoji);
+    document.querySelectorAll('.emoji-opt').forEach(o => {
+      o.classList.toggle('selected', o.textContent === selectedEmoji);
+    });
+  }
+
+  function previewProductImageFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) {
+      productImagePreview(document.getElementById('pImage').value || selectedEmoji);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      document.getElementById('productFormError').textContent = '⚠️ من فضلك اختر ملف صورة فقط';
+      document.getElementById('productFormError').style.display = 'block';
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      document.getElementById('productFormError').textContent = '⚠️ حجم الصورة يجب ألا يزيد عن 5MB';
+      document.getElementById('productFormError').style.display = 'block';
+      input.value = '';
+      return;
+    }
+    document.getElementById('productFormError').style.display = 'none';
+    const previewUrl = URL.createObjectURL(file);
+    document.getElementById('pImage').value = previewUrl;
+    productImagePreview(previewUrl);
+    document.querySelectorAll('.emoji-opt').forEach(o => o.classList.remove('selected'));
+  }
+
+  function closeProductModal() {
+    document.getElementById('productModalOverlay').classList.remove('open');
+  }
+
+  function saveProduct() {
+    const name = document.getElementById('pName').value.trim();
+    const price = parseInt(document.getElementById('pPrice').value);
+    const errEl = document.getElementById('productFormError');
+
+    if (!name || !price) {
+      errEl.textContent = '⚠️ الاسم والسعر حقلان إلزاميان';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const imageFile = document.getElementById('pImageFile').files[0];
+    let imageValue = document.getElementById('pImage').value || '🛋️';
+    if (imageFile) {
+      const uploaded = DB.uploadProductImage(imageFile);
+      if (!uploaded || !uploaded.path) {
+        errEl.textContent = '❌ فشل رفع صورة المنتج: ' + (DB.lastError || 'حاول مرة أخرى');
+        errEl.style.display = 'block';
+        return;
+      }
+      imageValue = uploaded.path;
+      document.getElementById('pImage').value = imageValue;
+    }
+
+    const data = {
+      name,
+      category: document.getElementById('pCategory').value,
+      price,
+      stock: parseInt(document.getElementById('pStock').value) || 0,
+      description: document.getElementById('pDesc').value.trim(),
+      image: imageValue,
+      featured: document.getElementById('pFeatured').checked,
+    };
+
+    const id = document.getElementById('pId').value;
+    if (id) {
+      DB.updateProduct(id, data);
+      const updated = DB.getProduct(id);
+      if (!updated) {
+        errEl.textContent = '❌ فشل تحديث المنتج في قاعدة البيانات. تأكد من تشغيل API وMySQL.';
+        errEl.style.display = 'block';
+        return;
+      }
+      showToast('✅ تم تحديث المنتج بنجاح');
+    } else {
+      const created = DB.addProduct(data);
+      if (!created || !created.id) {
+        errEl.textContent = '❌ فشل إضافة المنتج إلى قاعدة البيانات. تأكد من تشغيل API وMySQL.';
+        errEl.style.display = 'block';
+        return;
+      }
+      showToast('✅ تم إضافة المنتج بنجاح');
+    }
+    closeProductModal();
+    renderProductsTable();
+    loadOverview();
+  }
+
+  function deleteProduct(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المنتج؟')) return;
+    DB.deleteProduct(id);
+    renderProductsTable();
+    loadOverview();
+    showToast('🗑️ تم حذف المنتج');
+  }
+
+  // SITE PAGE MODAL
+  function openSitePageModal(slug) {
+    const errEl = document.getElementById('sitePageFormError');
+    errEl.style.display = 'none';
+    document.getElementById('pgImageFile').value = '';
+
+    const page = DB.getSitePage(slug);
+    if (!page) {
+      showToast('❌ تعذر تحميل الصفحة');
+      return;
+    }
+
+    document.getElementById('sitePageModalTitle').textContent = `تعديل: ${page.navLabel}`;
+    document.getElementById('pgSlug').value = page.slug;
+    document.getElementById('pgNavLabel').value = page.navLabel || '';
+    document.getElementById('pgTitle').value = page.title || '';
+    document.getElementById('pgSummary').value = page.summary || '';
+    document.getElementById('pgBody').value = page.body || '';
+    document.getElementById('pgLinks').value = formatSitePageLinks(page.links);
+    document.getElementById('pgImage').value = page.image || '';
+    document.getElementById('pgActive').checked = page.active;
+    sitePageImagePreview(page.image || '');
+    document.getElementById('sitePageModalOverlay').classList.add('open');
+  }
+
+  function closeSitePageModal() {
+    document.getElementById('sitePageModalOverlay').classList.remove('open');
+  }
+
+  function previewSitePageImageFile(input) {
+    const file = input.files && input.files[0];
+    const errEl = document.getElementById('sitePageFormError');
+    if (!file) {
+      sitePageImagePreview(document.getElementById('pgImage').value || '');
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      errEl.textContent = '⚠️ من فضلك اختر ملف صورة فقط';
+      errEl.style.display = 'block';
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      errEl.textContent = '⚠️ حجم الصورة يجب ألا يزيد عن 5MB';
+      errEl.style.display = 'block';
+      input.value = '';
+      return;
+    }
+    errEl.style.display = 'none';
+    sitePageImagePreview(URL.createObjectURL(file));
+  }
+
+  function removeSitePageImage() {
+    document.getElementById('pgImage').value = '';
+    document.getElementById('pgImageFile').value = '';
+    sitePageImagePreview('');
+  }
+
+  function saveSitePage() {
+    const slug = document.getElementById('pgSlug').value;
+    const nav_label = document.getElementById('pgNavLabel').value.trim();
+    const title = document.getElementById('pgTitle').value.trim();
+    const errEl = document.getElementById('sitePageFormError');
+
+    if (!nav_label || !title) {
+      errEl.textContent = '⚠️ اسم التاب وعنوان الصفحة مطلوبان';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    let imageValue = document.getElementById('pgImage').value || '';
+    const imageFile = document.getElementById('pgImageFile').files[0];
+    if (imageFile) {
+      const uploaded = DB.uploadSitePageImage(imageFile);
+      if (!uploaded || !uploaded.path) {
+        errEl.textContent = '❌ فشل رفع صورة الصفحة: ' + (DB.lastError || 'حاول مرة أخرى');
+        errEl.style.display = 'block';
+        return;
+      }
+      imageValue = uploaded.path;
+    }
+
+    const updated = DB.updateSitePage(slug, {
+      nav_label,
+      title,
+      summary: document.getElementById('pgSummary').value.trim(),
+      body: document.getElementById('pgBody').value.trim(),
+      links: parseSitePageLinks(document.getElementById('pgLinks').value),
+      image: imageValue,
+      active: document.getElementById('pgActive').checked,
+    });
+
+    if (!updated || !updated.slug) {
+      errEl.textContent = '❌ فشل حفظ الصفحة: ' + (DB.lastError || 'تحقق من الاتصال');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    closeSitePageModal();
+    renderSitePagesTable();
+    showToast('✅ تم حفظ الصفحة');
+  }
+
+  // QUOTE DETAIL
+  function openQuoteDetail(id) {
+    const q = DB.getQuotes().find(x => x.id === id);
+    if (!q) return;
+    document.getElementById('quoteDetailTitle').textContent = `طلب #PECU-${String(q.id).padStart(4,'0')}`;
+    document.getElementById('quoteDetailBody').innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px;">
+        ${[['الاسم', q.name], ['الجهة', q.org||'—'], ['البريد الإلكتروني', q.email], ['رقم الهاتف', q.phone],
+           ['الفئة', q.category], ['المنتج', q.product||'—'], ['الكمية', q.qty||'—'], ['الميزانية', q.budget||'—']].map(([l,v]) => `
+          <div>
+            <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">${l}</div>
+            <div style="color:var(--white);">${v}</div>
+          </div>`).join('')}
+      </div>
+      ${q.specs ? `<div style="margin-bottom:16px;"><div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:8px;">المواصفات الفنية</div><div style="background:var(--dark3); padding:16px; color:var(--gray-light); line-height:1.8; font-size:13px;">${q.specs}</div></div>` : ''}
+      ${q.notes ? `<div style="margin-bottom:16px;"><div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:8px;">ملاحظات</div><div style="background:var(--dark3); padding:16px; color:var(--gray-light); line-height:1.8; font-size:13px;">${q.notes}</div></div>` : ''}
+      <div style="margin-bottom:20px;">
+        <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:10px;">تغيير الحالة</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          ${['جديد','قيد المراجعة','تم الرد','مرفوض'].map(s =>
+            `<button class="btn btn-sm ${q.status===s?'btn-primary':'btn-outline'}" onclick="changeQuoteStatus(${q.id},'${s}',this)">${s}</button>`
+          ).join('')}
+        </div>
+      </div>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn btn-outline btn-sm" onclick="closeQuoteDetail()">إغلاق</button>
+        <a href="mailto:${q.email}?subject=رد على طلبك #PECU-${String(q.id).padStart(4,'0')}" class="btn btn-primary btn-sm"><span>✉️ إرسال رد بالإيميل</span></a>
+      </div>
+    `;
+    document.getElementById('quoteDetailOverlay').classList.add('open');
+  }
+
+  function changeQuoteStatus(id, status, btn) {
+    DB.updateQuoteStatus(id, status);
+    btn.closest('.modal-body').querySelectorAll('.btn').forEach(b => b.classList.remove('btn-primary'));
+    btn.classList.add('btn-primary');
+    renderQuotesTable();
+    showToast(`✅ تم تغيير الحالة إلى: ${status}`);
+  }
+
+  function closeQuoteDetail() {
+    document.getElementById('quoteDetailOverlay').classList.remove('open');
+  }
+
+  function deleteQuote(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا الطلب؟')) return;
+    DB.deleteQuote(id);
+    renderQuotesTable();
+    loadOverview();
+    showToast('🗑️ تم حذف الطلب');
+  }
+
+  // USER MODAL
+  function openUserModal(id) {
+    const errEl = document.getElementById('userFormError');
+    errEl.style.display = 'none';
+
+    if (id) {
+      const u = DB.getUser(id);
+      if (!u) {
+        showToast('❌ تعذر تحميل بيانات المستخدم');
+        return;
+      }
+      document.getElementById('userModalTitle').textContent = 'تعديل المستخدم';
+      document.getElementById('uPassHint').textContent = '(اختياري)';
+      document.getElementById('uId').value = u.id;
+      document.getElementById('uName').value = u.full_name || '';
+      document.getElementById('uEmail').value = u.email || '';
+      document.getElementById('uPhone').value = u.phone || '';
+      document.getElementById('uRole').value = u.role || 'website';
+      document.getElementById('uPass').value = '';
+    } else {
+      document.getElementById('userModalTitle').textContent = 'إضافة مستخدم جديد';
+      document.getElementById('uPassHint').textContent = '*';
+      document.getElementById('uId').value = '';
+      document.getElementById('uName').value = '';
+      document.getElementById('uEmail').value = '';
+      document.getElementById('uPhone').value = '';
+      document.getElementById('uPass').value = '';
+      document.getElementById('uRole').value = 'website';
+    }
+    document.getElementById('userModalOverlay').classList.add('open');
+  }
+
+  function closeUserModal() {
+    document.getElementById('userModalOverlay').classList.remove('open');
+  }
+
+  function saveUser() {
+    const id = document.getElementById('uId').value;
+    const full_name = document.getElementById('uName').value.trim();
+    const email = document.getElementById('uEmail').value.trim();
+    const phone = document.getElementById('uPhone').value.trim();
+    const password = document.getElementById('uPass').value;
+    const role = document.getElementById('uRole').value;
+    const errEl = document.getElementById('userFormError');
+
+    if (!full_name || !email || (!id && !password)) {
+      errEl.textContent = '⚠️ الاسم واسم الدخول مطلوبان، وكلمة المرور مطلوبة عند الإضافة';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const data = { full_name, email, phone, role };
+    if (password) data.password = password;
+
+    if (id) {
+      DB.updateUser(id, data);
+      const updated = DB.getUser(id);
+      if (!updated) {
+        errEl.textContent = '❌ فشل تحديث المستخدم في قاعدة البيانات';
+        errEl.style.display = 'block';
+        return;
+      }
+      showToast('✅ تم تحديث المستخدم');
+    } else {
+      const created = DB.addUser(data);
+      if (!created || !created.id) {
+        errEl.textContent = `❌ فشل إضافة المستخدم: ${DB.lastError || 'تحقق من البيانات أو الاتصال بقاعدة البيانات'}`;
+        errEl.style.display = 'block';
+        return;
+      }
+      showToast('✅ تم إضافة المستخدم');
+    }
+
+    closeUserModal();
+    renderUsersTable();
+  }
+
+  function deleteUser(id) {
+    if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+    DB.deleteUser(id);
+    renderUsersTable();
+    showToast('🗑️ تم حذف المستخدم');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
+
+
+
+
+

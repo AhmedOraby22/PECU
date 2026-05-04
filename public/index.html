@@ -1,0 +1,277 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PECU — الوحدة الخاصة لهندسة الأنتاج</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-main">PECU</span>
+    <span class="logo-sub">الوحدة الخاصة لهندسة الأنتاج</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html" class="active">الرئيسية</a></li>
+    <li><a href="products.html">المنتجات</a></li>
+    <li><a href="content.html?slug=scientific-research" data-page-slug="scientific-research">البحث العلمي</a></li>
+    <li><a href="content.html?slug=training" data-page-slug="training">التدريب</a></li>
+    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريب الطلاب</a></li>
+    <li><a href="content.html?slug=news" data-page-slug="news">أخبارنا</a></li>
+    <li><a href="quote.html">طلب عرض سعر</a></li>
+    <li><a href="about.html">من نحن</a></li>
+    <li><a href="contact.html">تواصل معنا</a></li>
+    <li><a href="login.html" class="nav-login-icon" title="تسجيل الدخول">👤</a></li>
+    <li><button type="button" class="nav-theme-toggle theme-toggle" title="تبديل الوضع">🌙</button></li>
+    <li><a href="dashboard.html" class="nav-cta">لوحة التحكم</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; margin-bottom:22px;">
+      <img src="logo.png" alt="Production Engineering Consulting Unit — Ain Shams University" style="width:150px; height:150px; object-fit:contain; border-radius:50%; background:rgba(255,255,255,0.92); padding:10px; box-shadow:0 18px 40px rgba(0,0,0,0.32);" />
+      <div style="display:flex; flex-direction:column; gap:6px;">
+        <div style="color:var(--gold); font-weight:700; font-size:22px; letter-spacing:0.2px;">الوحدة الخاصة لهندسة الأنتاج</div>
+        <div style="color:var(--gray); font-size:16px;">Ain Shams University — Production Engineering Consulting Unit</div>
+      </div>
+    </div>
+    <h1>
+      أثاث يعكس
+      <span>رقيك وذوقك</span>
+    </h1>
+    <p>نصنع قطع أثاث استثنائية تجمع بين الجماليات الفاخرة والمتانة الهندسية. كل قطعة تُصنع بعناية لتدوم لسنوات طويلة.</p>
+    <div class="hero-actions">
+      <a href="products.html" class="btn btn-primary"><span>استعرض المنتجات</span> →</a>
+      <a href="quote.html" class="btn btn-outline">طلب عرض سعر</a>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <h3>+500</h3>
+      <p>مشروع مكتمل</p>
+    </div>
+    <div class="hero-stat">
+      <h3>15+</h3>
+      <p>سنة خبرة</p>
+    </div>
+    <div class="hero-stat">
+      <h3>98%</h3>
+      <p>رضا العملاء</p>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>اكتشف</span>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header reveal">
+    <div class="section-tag">تصفح حسب الفئة</div>
+    <h2 class="section-title">كل ما تحتاجه لـ <em>منزلك المثالي</em></h2>
+  </div>
+  <div class="categories-grid" id="categoriesGrid">
+    <div class="cat-card reveal" onclick="filterCategory('living')">
+      <div class="cat-icon">🛋️</div>
+      <div class="cat-name">غرفة المعيشة</div>
+      <div class="cat-count" id="cat-living">0 منتج</div>
+    </div>
+    <div class="cat-card reveal" onclick="filterCategory('bedroom')">
+      <div class="cat-icon">🛏️</div>
+      <div class="cat-name">غرفة النوم</div>
+      <div class="cat-count" id="cat-bedroom">0 منتج</div>
+    </div>
+    <div class="cat-card reveal" onclick="filterCategory('dining')">
+      <div class="cat-icon">🍽️</div>
+      <div class="cat-name">غرفة السفرة</div>
+      <div class="cat-count" id="cat-dining">0 منتج</div>
+    </div>
+    <div class="cat-card reveal" onclick="filterCategory('office')">
+      <div class="cat-icon">💼</div>
+      <div class="cat-name">أثاث المكتب</div>
+      <div class="cat-count" id="cat-office">0 منتج</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background: var(--dark2); padding-top: 80px; padding-bottom: 80px;">
+  <div class="section-header reveal">
+    <div class="section-tag">المنتجات المميزة</div>
+    <h2 class="section-title">الأكثر <em>طلباً وشهرة</em></h2>
+    <p class="section-desc">اختياراتنا من أرقى القطع التي تجمع بين التصميم الفريد والجودة الاستثنائية.</p>
+  </div>
+  <div class="products-grid" id="featuredGrid"></div>
+  <div style="text-align:center; margin-top: 50px;">
+    <a href="products.html" class="btn btn-outline">عرض جميع المنتجات →</a>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-header reveal">
+    <div class="section-tag">لماذا PECU</div>
+    <h2 class="section-title">الفرق الذي <em>تشعر به</em></h2>
+  </div>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 2px;">
+    <div class="reveal" style="background:var(--dark2); padding:40px; border:1px solid rgba(201,169,110,0.08);">
+      <div style="font-size:36px; margin-bottom:20px;">🎨</div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:12px; color:var(--gold);">تصميم أصيل</h3>
+      <p style="color:var(--gray); line-height:1.8; font-size:14px;">كل قطعة تُصمم بعناية لتناسب ذوقك ومساحتك، مع لمسة فاخرة لا تتكرر.</p>
+    </div>
+    <div class="reveal" style="background:var(--dark2); padding:40px; border:1px solid rgba(201,169,110,0.08);">
+      <div style="font-size:36px; margin-bottom:20px;">🔨</div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:12px; color:var(--gold);">صناعة فاخرة</h3>
+      <p style="color:var(--gray); line-height:1.8; font-size:14px;">نستخدم خامات عالية الجودة ونطبق معايير هندسية دقيقة في كل مرحلة.</p>
+    </div>
+    <div class="reveal" style="background:var(--dark2); padding:40px; border:1px solid rgba(201,169,110,0.08);">
+      <div style="font-size:36px; margin-bottom:20px;">🚚</div>
+      <h3 style="font-family:'Playfair Display',serif; font-size:22px; margin-bottom:12px; color:var(--gold);">توصيل وتركيب</h3>
+      <p style="color:var(--gray); line-height:1.8; font-size:14px;">نتكفل بالتوصيل والتركيب الاحترافي لضمان وصول القطعة بالشكل المثالي.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section quote-section">
+  <div style="text-align:center; position:relative; z-index:1;">
+    <div class="section-tag reveal">جاهز للبدء؟</div>
+    <h2 class="section-title reveal" style="margin-bottom:20px;">احصل على <em>عرض سعر</em> مجاني</h2>
+    <p class="section-desc reveal">أرسل لنا المواصفات وسنرد عليك خلال 24 ساعة بعرض مناسب لاحتياجك.</p>
+    <div style="margin-top:40px;" class="reveal">
+      <a href="quote.html" class="btn btn-primary" style="font-size:16px; padding:18px 48px;"><span>اطلب عرض سعرك الآن</span> ←</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-logo">
+      <div class="logo-main">PECU</div>
+      <p>الوحدة الخاصة لهندسة الأنتاج — متخصصون في تصنيع وتوريد أفخم قطع الأثاث بمعايير هندسية دقيقة.</p>
+      <div style="display:flex; gap:12px; margin-top:20px;">
+        <a href="#" style="color:var(--gold); font-size:20px;">📘</a>
+        <a href="#" style="color:var(--gold); font-size:20px;">📸</a>
+        <a href="#" style="color:var(--gold); font-size:20px;">💼</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>روابط سريعة</h4>
+      <ul>
+        <li><a href="index.html">الرئيسية</a></li>
+        <li><a href="products.html">المنتجات</a></li>
+        <li><a href="quote.html">طلب عرض سعر</a></li>
+        <li><a href="about.html">من نحن</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>الفئات</h4>
+      <ul>
+        <li><a href="products.html">غرفة المعيشة</a></li>
+        <li><a href="products.html">غرفة النوم</a></li>
+        <li><a href="products.html">غرفة السفرة</a></li>
+        <li><a href="products.html">أثاث المكتب</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>تواصل معنا</h4>
+      <ul>
+        <li><a href="#">📞 01000000000</a></li>
+        <li><a href="#">✉️ info@pecu.eg</a></li>
+        <li><a href="#">📍 القاهرة، مصر</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 PECU — الوحدة الخاصة لهندسة الأنتاج. جميع الحقوق محفوظة.</span>
+    <span style="color:var(--gold);">صُنع بـ ♥ في مصر</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="theme.js"></script>
+<script src="database.js"></script>
+<script>
+  PECUTheme.initTheme();
+  DB.init();
+
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+  });
+
+  document.getElementById('hamburger').onclick = () => {
+    document.getElementById('navLinks').style.display =
+      document.getElementById('navLinks').style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  const products = DB.getProducts();
+  const cats = { living: 0, bedroom: 0, dining: 0, office: 0 };
+  products.forEach(p => { if (cats[p.category] !== undefined) cats[p.category]++; });
+  Object.keys(cats).forEach(k => {
+    const el = document.getElementById(`cat-${k}`);
+    if (el) el.textContent = `${cats[k]} منتج`;
+  });
+
+  const featured = products.filter(p => p.featured).slice(0, 4);
+  const catNames = {
+    living: 'غرفة المعيشة',
+    bedroom: 'غرفة النوم',
+    dining: 'غرفة السفرة',
+    office: 'أثاث المكتب'
+  };
+
+  function isUploadedProductImage(value) {
+    return typeof value === 'string' && /^(uploads\/|\/uploads\/|https?:\/\/|data:image\/|blob:)/i.test(value);
+  }
+
+  function productImageMarkup(value) {
+    if (isUploadedProductImage(value)) {
+      const src = String(value).replace(/"/g, '&quot;');
+      return `<img src="${src}" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">`;
+    }
+    return value || '🛋️';
+  }
+
+  document.getElementById('featuredGrid').innerHTML = featured.map(p => `
+    <div class="product-card reveal">
+      ${p.featured ? '<div class="product-badge">مميز</div>' : ''}
+      <div class="product-img">${productImageMarkup(p.image)}</div>
+      <div class="product-info">
+        <div class="product-cat">${catNames[p.category] || p.category}</div>
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.description}</div>
+        <div class="product-footer">
+          <div class="product-price">${p.price.toLocaleString('ar-EG')} <span>جنيه</span></div>
+          <a href="quote.html" class="btn btn-primary btn-sm"><span>طلب سعر</span></a>
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  function filterCategory(cat) {
+    window.location.href = `products.html?cat=${cat}`;
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
+
+
+

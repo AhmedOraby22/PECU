@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طلب عرض سعر — PECU</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .quote-page {
+      min-height: 100vh;
+      padding-top: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+    .quote-hero {
+      padding: 80px 60px 60px;
+      background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 100%);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .quote-hero::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(201,169,110,0.08), transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+    .quote-hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(36px, 5vw, 60px);
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+    }
+    .quote-hero p {
+      color: var(--gray-light);
+      font-size: 16px;
+      margin-top: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quote-main {
+      flex: 1;
+      padding: 80px 60px;
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 80px;
+      max-width: 1300px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .info-card {
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.1);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      height: fit-content;
+    }
+
+    .info-item {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .info-icon {
+      width: 48px; height: 48px;
+      background: rgba(201,169,110,0.1);
+      border: 1px solid rgba(201,169,110,0.25);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .info-text h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .info-text p {
+      font-size: 13px;
+      color: var(--gray);
+      line-height: 1.7;
+    }
+
+    .steps {
+      margin-top: 10px;
+    }
+
+    .step {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 19px;
+      top: 40px;
+      width: 1px;
+      height: calc(100% - 20px);
+      background: rgba(201,169,110,0.2);
+    }
+
+    .step-num {
+      width: 40px; height: 40px;
+      background: var(--gold);
+      color: var(--black);
+      font-weight: 900;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .step-text h4 { font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+    .step-text p { font-size: 13px; color: var(--gray); }
+
+    .quote-form-box {
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.15);
+    }
+
+    .quote-form-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid rgba(201,169,110,0.15);
+      background: linear-gradient(135deg, rgba(201,169,110,0.08), transparent);
+    }
+
+    .quote-form-header h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      color: var(--gold);
+    }
+
+    .quote-form-header p {
+      font-size: 13px;
+      color: var(--gray);
+      margin-top: 4px;
+    }
+
+    .quote-form-body { padding: 32px; }
+
+    .success-overlay {
+      display: none;
+      text-align: center;
+      padding: 60px 30px;
+    }
+
+    .success-overlay .check {
+      width: 80px; height: 80px;
+      background: rgba(80,200,120,0.1);
+      border: 2px solid var(--success);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px;
+      margin: 0 auto 24px;
+      animation: scaleIn 0.5s ease;
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0); }
+      to { transform: scale(1); }
+    }
+
+    .success-overlay h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: var(--success);
+      margin-bottom: 12px;
+    }
+
+    .success-overlay p {
+      color: var(--gray-light);
+      font-size: 15px;
+      line-height: 1.8;
+      max-width: 380px;
+      margin: 0 auto 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .quote-main { grid-template-columns: 1fr; }
+      .quote-hero { padding: 60px 30px 40px; }
+      .quote-main { padding: 40px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-main">PECU</span>
+    <span class="logo-sub">الوحدة الخاصة لهندسة الأنتاج</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">الرئيسية</a></li>
+    <li><a href="products.html">المنتجات</a></li>
+    <li><a href="content.html?slug=scientific-research" data-page-slug="scientific-research">البحث العلمي</a></li>
+    <li><a href="content.html?slug=training" data-page-slug="training">التدريب</a></li>
+    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريب الطلاب</a></li>
+    <li><a href="content.html?slug=news" data-page-slug="news">أخبارنا</a></li>
+    <li><a href="quote.html" class="active">طلب عرض سعر</a></li>
+    <li><a href="about.html">من نحن</a></li>
+    <li><a href="contact.html">تواصل معنا</a></li>
+    <li><a href="login.html" class="nav-login-icon" title="تسجيل الدخول">👤</a></li>
+    <li><button type="button" class="nav-theme-toggle theme-toggle" title="تبديل الوضع">🌙</button></li>
+    <li><a href="dashboard.html" class="nav-cta">لوحة التحكم</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="quote-page">
+  <div class="quote-hero">
+    <div class="section-tag" style="margin-bottom:16px; display:inline-block;">الوحدة الخاصة لهندسة الأنتاج</div>
+    <h1>طلب <em style="color:var(--gold); font-style:normal;">عرض سعر</em></h1>
+    <p>أرسل لنا تفاصيل طلبك وسنرد بأفضل عرض خلال 24 ساعة</p>
+  </div>
+
+  <div class="quote-main">
+    <!-- Left: Info -->
+    <div>
+      <div class="info-card" style="margin-bottom:24px;">
+        <h3 style="font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); padding-bottom:16px; border-bottom:1px solid rgba(201,169,110,0.15);">معلومات التواصل</h3>
+        <div class="info-item">
+          <div class="info-icon">📞</div>
+          <div class="info-text">
+            <h4>اتصل بنا</h4>
+            <p>01000000000</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">✉️</div>
+          <div class="info-text">
+            <h4>البريد الإلكتروني</h4>
+            <p>info@pecu.eg</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">🕐</div>
+          <div class="info-text">
+            <h4>ساعات العمل</h4>
+            <p>السبت – الخميس: 9 صباحاً – 6 مساءً</p>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">📍</div>
+          <div class="info-text">
+            <h4>العنوان</h4>
+            <p>القاهرة، جمهورية مصر العربية</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3 style="font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); padding-bottom:16px; border-bottom:1px solid rgba(201,169,110,0.15);">كيف يعمل النظام؟</h3>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div class="step-text">
+              <h4>أرسل طلبك</h4>
+              <p>امل النموذج بتفاصيل الطلب والمواصفات الفنية المطلوبة</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-text">
+              <h4>مراجعة الطلب</h4>
+              <p>يراجع فريقنا الطلب ويدرس المواصفات بدقة</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-text">
+              <h4>عرض السعر</h4>
+              <p>نرسل لك عرض سعر مفصل خلال 24 ساعة</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-text">
+              <h4>التنفيذ</h4>
+              <p>بعد الموافقة نبدأ التصنيع والتوريد في الوقت المحدد</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Form -->
+    <div class="quote-form-box">
+      <div class="quote-form-header">
+        <h2>📋 نموذج طلب عرض السعر</h2>
+        <p>جميع الحقول المعلمة بـ (*) إلزامية</p>
+      </div>
+      <div class="quote-form-body">
+        <div id="formContainer">
+          <div class="form-row">
+            <div class="form-group">
+              <label>الاسم الكامل *</label>
+              <input type="text" id="qName" placeholder="أدخل اسمك الكامل" required>
+            </div>
+            <div class="form-group">
+              <label>الجهة / الشركة</label>
+              <input type="text" id="qOrg" placeholder="اسم الجهة أو الشركة">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>البريد الإلكتروني *</label>
+              <input type="email" id="qEmail" placeholder="example@email.com" required>
+            </div>
+            <div class="form-group">
+              <label>رقم الهاتف *</label>
+              <input type="tel" id="qPhone" placeholder="01XXXXXXXXX" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>نوع الأثاث المطلوب *</label>
+            <select id="qCategory" required>
+              <option value="">-- اختر الفئة --</option>
+              <option value="غرفة المعيشة">غرفة المعيشة</option>
+              <option value="غرفة النوم">غرفة النوم</option>
+              <option value="غرفة السفرة">غرفة السفرة</option>
+              <option value="أثاث مكتب">أثاث مكتب</option>
+              <option value="أثاث خارجي">أثاث خارجي</option>
+              <option value="أثاث مخصص">أثاث مخصص / حسب الطلب</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>المنتج المحدد (إن وجد)</label>
+            <input type="text" id="qProduct" placeholder="مثال: أريكة كلاسيك لوكس">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>الكمية المطلوبة</label>
+              <input type="number" id="qQty" placeholder="1" min="1">
+            </div>
+            <div class="form-group">
+              <label>الميزانية التقريبية (جنيه)</label>
+              <input type="text" id="qBudget" placeholder="مثال: 10,000 – 20,000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>المواصفات الفنية المطلوبة</label>
+            <textarea id="qSpecs" placeholder="اذكر المواد المفضلة، الأبعاد، الألوان، أي تفاصيل خاصة..." style="min-height:120px;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>ملاحظات إضافية</label>
+            <textarea id="qNotes" placeholder="أي ملاحظات أو متطلبات خاصة..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>رفع ملف المواصفات (PDF / صورة)</label>
+            <input type="file" id="qFile" class="file-upload" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx">
+            <small style="color:var(--gray); font-size:12px; margin-top:6px; display:block;">PDF, JPG, PNG, DOC - حجم أقصى 10MB</small>
+          </div>
+          <div id="formError" style="color:var(--danger); font-size:13px; margin-bottom:16px; display:none;"></div>
+          <button class="btn btn-primary" onclick="submitQuote()" style="width:100%; justify-content:center; font-size:16px; padding:16px;">
+            <span>📤 إرسال طلب عرض السعر</span>
+          </button>
+        </div>
+
+        <div class="success-overlay" id="successOverlay">
+          <div class="check">✓</div>
+          <h3>تم إرسال طلبك بنجاح!</h3>
+          <p>شكراً لك. سيتواصل معك فريقنا خلال 24 ساعة على البريد الإلكتروني أو الهاتف الذي أدخلته.</p>
+          <p style="color:var(--gold); font-weight:700; margin-bottom:20px;" id="quoteRef"></p>
+          <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <a href="products.html" class="btn btn-outline">تصفح المنتجات</a>
+            <button class="btn btn-primary" onclick="resetForm()"><span>طلب جديد</span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="theme.js"></script>
+<script src="database.js"></script>
+<script>
+  PECUTheme.initTheme();
+  DB.init();
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+  });
+  document.getElementById('hamburger').onclick = () => {
+    const nl = document.getElementById('navLinks');
+    nl.style.display = nl.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  // Pre-fill product from URL
+  const urlProduct = new URLSearchParams(location.search).get('product');
+  if (urlProduct) document.getElementById('qProduct').value = decodeURIComponent(urlProduct);
+
+  function submitQuote() {
+    const name = document.getElementById('qName').value.trim();
+    const email = document.getElementById('qEmail').value.trim();
+    const phone = document.getElementById('qPhone').value.trim();
+    const category = document.getElementById('qCategory').value;
+    const errEl = document.getElementById('formError');
+
+    if (!name || !email || !phone || !category) {
+      errEl.textContent = '⚠️ يرجى ملء جميع الحقول الإلزامية المعلمة بـ (*)';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const quote = DB.addQuote({
+      name,
+      org: document.getElementById('qOrg').value.trim(),
+      email,
+      phone,
+      category,
+      product: document.getElementById('qProduct').value.trim(),
+      qty: document.getElementById('qQty').value || '1',
+      budget: document.getElementById('qBudget').value.trim(),
+      specs: document.getElementById('qSpecs').value.trim(),
+      notes: document.getElementById('qNotes').value.trim(),
+    });
+
+    if (!quote || !quote.id) {
+      errEl.textContent = '⚠️ ' + (DB.lastError || 'تعذر إرسال الطلب. تحقق من الاتصال وحاول مرة أخرى.');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    document.getElementById('formContainer').style.display = 'none';
+    document.getElementById('successOverlay').style.display = 'block';
+    document.getElementById('quoteRef').textContent = `رقم طلبك: #PECU-${String(quote.id).padStart(4, '0')}`;
+  }
+
+  function resetForm() {
+    document.getElementById('formContainer').style.display = 'block';
+    document.getElementById('successOverlay').style.display = 'none';
+    ['qName','qOrg','qEmail','qPhone','qProduct','qQty','qBudget','qSpecs','qNotes'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('qCategory').value = '';
+  }
+</script>
+</body>
+</html>
+
+
+
+
+
+
+

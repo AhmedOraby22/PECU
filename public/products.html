@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المنتجات — PECU</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <span class="logo-main">PECU</span>
+    <span class="logo-sub">الوحدة الخاصة لهندسة الأنتاج</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="index.html">الرئيسية</a></li>
+    <li><a href="products.html" class="active">المنتجات</a></li>
+    <li><a href="content.html?slug=scientific-research" data-page-slug="scientific-research">البحث العلمي</a></li>
+    <li><a href="content.html?slug=training" data-page-slug="training">التدريب</a></li>
+    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريب الطلاب</a></li>
+    <li><a href="content.html?slug=news" data-page-slug="news">أخبارنا</a></li>
+    <li><a href="quote.html">طلب عرض سعر</a></li>
+    <li><a href="about.html">من نحن</a></li>
+    <li><a href="contact.html">تواصل معنا</a></li>
+    <li><a href="login.html" class="nav-login-icon" title="تسجيل الدخول">👤</a></li>
+    <li><button type="button" class="nav-theme-toggle theme-toggle" title="تبديل الوضع">🌙</button></li>
+    <li><a href="dashboard.html" class="nav-cta">لوحة التحكم</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="page-header">
+  <h1>كل <em style="color:var(--gold); font-style:normal;">منتجاتنا</em></h1>
+  <p>اكتشف مجموعتنا الكاملة من الأثاث الفاخر المصنوع بدقة هندسية عالية</p>
+</div>
+
+<section class="section" style="padding-top:60px;">
+  <div class="filters" id="filters">
+    <button class="filter-btn active" onclick="filterProducts('all', this)">الكل</button>
+    <button class="filter-btn" onclick="filterProducts('living', this)">غرفة المعيشة 🛋️</button>
+    <button class="filter-btn" onclick="filterProducts('bedroom', this)">غرفة النوم 🛏️</button>
+    <button class="filter-btn" onclick="filterProducts('dining', this)">غرفة السفرة 🍽️</button>
+    <button class="filter-btn" onclick="filterProducts('office', this)">أثاث المكتب 💼</button>
+  </div>
+  <div class="products-grid" id="productsGrid"></div>
+  <div id="emptyState" style="display:none; text-align:center; padding:80px 0;">
+    <div style="font-size:60px; margin-bottom:20px;">📦</div>
+    <h3 style="font-family:'Playfair Display',serif; font-size:24px; color:var(--gold);">لا توجد منتجات</h3>
+    <p style="color:var(--gray); margin-top:10px;">لا توجد منتجات في هذه الفئة حالياً</p>
+  </div>
+</section>
+
+<!-- Product Detail Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="productModal">
+    <div class="modal-header">
+      <h3 id="modalTitle">تفاصيل المنتج</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<footer class="footer" style="margin-top:0;">
+  <div class="footer-bottom" style="border-top:none; padding-top:0;">
+    <span>© 2024 PECU — الوحدة الخاصة لهندسة الأنتاج</span>
+    <a href="index.html" style="color:var(--gold); text-decoration:none;">← العودة للرئيسية</a>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+<script src="theme.js"></script>
+<script src="database.js"></script>
+<script>
+  PECUTheme.initTheme();
+  DB.init();
+  window.addEventListener('scroll', () => {
+    document.getElementById('navbar').classList.toggle('scrolled', scrollY > 50);
+  });
+  document.getElementById('hamburger').onclick = () => {
+    const nl = document.getElementById('navLinks');
+    nl.style.display = nl.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  const catNames = { living: 'غرفة المعيشة', bedroom: 'غرفة النوم', dining: 'غرفة السفرة', office: 'أثاث المكتب' };
+  let currentFilter = 'all';
+
+  function isUploadedProductImage(value) {
+    return typeof value === 'string' && /^(uploads\/|\/uploads\/|https?:\/\/|data:image\/|blob:)/i.test(value);
+  }
+
+  function productImageMarkup(value) {
+    if (isUploadedProductImage(value)) {
+      const src = String(value).replace(/"/g, '&quot;');
+      return `<img src="${src}" alt="" style="width:100%; height:100%; object-fit:cover; display:block;">`;
+    }
+    return value || '🛋️';
+  }
+
+  function renderProducts(filter) {
+    const products = DB.getProducts();
+    const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+    const grid = document.getElementById('productsGrid');
+    const empty = document.getElementById('emptyState');
+    if (filtered.length === 0) {
+      grid.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = filtered.map(p => `
+      <div class="product-card reveal" onclick="openProduct(${p.id})">
+        ${p.featured ? '<div class="product-badge">مميز</div>' : ''}
+        <div class="product-img">${productImageMarkup(p.image)}</div>
+        <div class="product-info">
+          <div class="product-cat">${catNames[p.category] || p.category}</div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-desc">${p.description}</div>
+          <div class="product-footer">
+            <div class="product-price">${p.price.toLocaleString('ar-EG')} <span>جنيه</span></div>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); requestQuote('${p.name}')"><span>طلب سعر</span></button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    setTimeout(() => {
+      const obs = new IntersectionObserver(entries => entries.forEach(e => {
+        if (e.isIntersecting) e.target.classList.add('visible');
+      }), { threshold: 0.1 });
+      document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    }, 50);
+  }
+
+  function filterProducts(cat, btn) {
+    currentFilter = cat;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderProducts(cat);
+  }
+
+  function openProduct(id) {
+    const p = DB.getProduct(id);
+    if (!p) return;
+    document.getElementById('modalTitle').textContent = p.name;
+    document.getElementById('modalBody').innerHTML = `
+      <div style="text-align:center; font-size:100px; height:260px; display:flex; align-items:center; justify-content:center; background:var(--dark3); margin-bottom:24px; overflow:hidden;">${productImageMarkup(p.image)}</div>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px;">
+        <div>
+          <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">الفئة</div>
+          <div style="color:var(--white);">${catNames[p.category]}</div>
+        </div>
+        <div>
+          <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">السعر</div>
+          <div style="font-family:'Playfair Display',serif; font-size:22px; color:var(--gold);">${p.price.toLocaleString('ar-EG')} جنيه</div>
+        </div>
+        <div>
+          <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">المخزون</div>
+          <div style="color:${p.stock > 5 ? 'var(--success)' : 'var(--danger)'};">${p.stock} قطعة متاحة</div>
+        </div>
+        <div>
+          <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:6px;">الحالة</div>
+          <div style="color:${p.featured ? 'var(--gold)' : 'var(--gray)'};">${p.featured ? '⭐ منتج مميز' : 'منتج عادي'}</div>
+        </div>
+      </div>
+      <div style="font-size:11px; letter-spacing:2px; color:var(--gold); margin-bottom:10px;">الوصف</div>
+      <p style="color:var(--gray-light); line-height:1.9; margin-bottom:24px;">${p.description}</p>
+      <a href="quote.html?product=${encodeURIComponent(p.name)}" class="btn btn-primary" style="width:100%; justify-content:center;"><span>اطلب عرض سعر لهذا المنتج</span></a>
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+
+  function requestQuote(name) {
+    window.location.href = `quote.html?product=${encodeURIComponent(name)}`;
+  }
+
+  // Check URL param for category filter
+  const urlCat = new URLSearchParams(location.search).get('cat');
+  if (urlCat) {
+    const btn = document.querySelector(`[onclick="filterProducts('${urlCat}', this)"]`);
+    if (btn) filterProducts(urlCat, btn);
+    else renderProducts('all');
+  } else {
+    renderProducts('all');
+  }
+</script>
+</body>
+</html>
+
+
+
+
+
