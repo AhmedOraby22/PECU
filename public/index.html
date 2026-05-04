@@ -34,6 +34,10 @@
 
 <section class="hero">
   <div class="hero-bg"></div>
+  <div class="hero-slider" id="heroSlider"></div>
+  <button type="button" class="hero-arrow hero-arrow-right" id="heroNext" onclick="moveHeroSlide(1)" aria-label="الصورة التالية">→</button>
+  <button type="button" class="hero-arrow hero-arrow-left" id="heroPrev" onclick="moveHeroSlide(-1)" aria-label="الصورة السابقة">←</button>
+  <div class="hero-dots" id="heroDots"></div>
   <div class="hero-grid"></div>
   <div class="hero-content">
     <div style="display:flex; flex-direction:column; align-items:center; text-align:center; gap:14px; margin-bottom:22px;">
@@ -209,6 +213,83 @@
     document.getElementById('navLinks').style.display =
       document.getElementById('navLinks').style.display === 'flex' ? 'none' : 'flex';
   };
+
+  let heroSlides = [];
+  let heroSlideIndex = -1;
+  let heroSlideTimer = null;
+
+  function renderHeroSlides() {
+    heroSlides = DB.getHeroSlides().filter(slide => slide.active && slide.image);
+    const hero = document.querySelector('.hero');
+    const slider = document.getElementById('heroSlider');
+    const dots = document.getElementById('heroDots');
+    const arrows = [document.getElementById('heroNext'), document.getElementById('heroPrev')];
+    if (!heroSlides.length) {
+      hero.classList.remove('has-slides');
+      slider.classList.remove('has-slides');
+      slider.innerHTML = '';
+      dots.innerHTML = '';
+      dots.style.display = 'none';
+      arrows.forEach(btn => { if (btn) btn.style.display = 'none'; });
+      return;
+    }
+
+    hero.classList.add('has-slides');
+    hero.classList.toggle('showing-slide', heroSlideIndex >= 0);
+    slider.classList.toggle('has-slides', heroSlideIndex >= 0);
+    arrows.forEach(btn => { if (btn) btn.style.display = 'flex'; });
+    slider.innerHTML = heroSlides.map((slide, index) => `
+      <div class="hero-slide${index === heroSlideIndex ? ' active' : ''}">
+        <img src="${String(slide.image).replace(/"/g, '&quot;')}" alt="${String(slide.title || '').replace(/"/g, '&quot;')}">
+      </div>
+    `).join('');
+    dots.innerHTML = heroSlides.map((_, index) => `
+      <button type="button" class="hero-dot${index === heroSlideIndex ? ' active' : ''}" onclick="goToHeroSlide(${index})" aria-label="الصورة ${index + 1}"></button>
+    `).join('');
+    dots.style.display = heroSlides.length > 1 && heroSlideIndex >= 0 ? 'flex' : 'none';
+    startHeroAutoSlide();
+  }
+
+  function moveHeroSlide(direction) {
+    if (!heroSlides.length) return;
+    heroSlideIndex = heroSlideIndex < 0
+      ? (direction > 0 ? 0 : heroSlides.length - 1)
+      : (heroSlideIndex + direction + heroSlides.length) % heroSlides.length;
+    showHeroSlide();
+    startHeroAutoSlide();
+  }
+
+  function goToHeroSlide(index) {
+    if (!heroSlides.length) return;
+    heroSlideIndex = index;
+    showHeroSlide();
+    startHeroAutoSlide();
+  }
+
+  function showHeroSlide() {
+    document.querySelector('.hero').classList.add('showing-slide');
+    document.getElementById('heroSlider').classList.add('has-slides');
+    document.getElementById('heroDots').style.display = heroSlides.length > 1 ? 'flex' : 'none';
+    document.querySelectorAll('.hero-slide').forEach((slide, index) => {
+      slide.classList.toggle('active', index === heroSlideIndex);
+    });
+    document.querySelectorAll('.hero-dot').forEach((dot, index) => {
+      dot.classList.toggle('active', index === heroSlideIndex);
+    });
+  }
+
+  function startHeroAutoSlide() {
+    clearInterval(heroSlideTimer);
+    if (heroSlides.length <= 1) return;
+    heroSlideTimer = setInterval(() => moveHeroSlide(1), 5000);
+    if (heroSlideIndex < 0) {
+      setTimeout(() => {
+        if (heroSlideIndex < 0 && heroSlides.length) moveHeroSlide(1);
+      }, 3000);
+    }
+  }
+
+  renderHeroSlides();
 
   const products = DB.getProducts();
   const cats = { living: 0, bedroom: 0, dining: 0, office: 0 };

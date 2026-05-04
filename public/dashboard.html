@@ -364,6 +364,9 @@
         <button class="sidebar-link" onclick="showSection('products', this)">
           <span class="icon">🛋️</span> المنتجات
         </button>
+        <button class="sidebar-link" onclick="showSection('hero', this)">
+          <span class="icon">🖼️</span> صور الرئيسية
+        </button>
         <button class="sidebar-link" onclick="showSection('pages', this)">
           <span class="icon">📰</span> الصفحات
         </button>
@@ -477,6 +480,44 @@
                   </tr>
                 </thead>
                 <tbody id="productsTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERO SLIDES -->
+        <div class="page-section" id="sec-hero">
+          <div class="dash-card-header" style="background:var(--dark2); border:1px solid rgba(201,169,110,0.1); padding:20px 24px; margin-bottom:20px;">
+            <h3 style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold);">صور الصفحة الرئيسية</h3>
+          </div>
+          <div class="dash-card" style="padding:24px; margin-bottom:20px;">
+            <div class="form-row">
+              <div class="form-group">
+                <label>اختيار صورة للسلايدر *</label>
+                <input type="file" id="heroImageFile" accept="image/jpeg,image/png,image/webp,image/gif" onchange="previewHeroSlideImage(this)">
+                <small style="color:var(--gray); display:block; margin-top:6px;">JPG / PNG / WEBP / GIF بحد أقصى 5MB</small>
+              </div>
+              <div class="form-group">
+                <label>عنوان اختياري للصورة</label>
+                <input type="text" id="heroImageTitle" placeholder="مثال: معرض منتجات الوحدة">
+              </div>
+            </div>
+            <div id="heroImagePreview" style="margin-bottom:12px;"></div>
+            <div id="heroFormError" style="color:var(--danger); font-size:13px; margin-bottom:12px; display:none;"></div>
+            <button class="btn btn-primary btn-sm" onclick="addHeroSlide()"><span>+ إضافة الصورة</span></button>
+          </div>
+          <div class="dash-card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الصورة</th>
+                    <th>العنوان</th>
+                    <th>التاريخ</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="heroSlidesTable"></tbody>
               </table>
             </div>
           </div>
@@ -805,6 +846,7 @@
     const titles = {
       overview: ['نظرة عامة', 'إحصائيات ولمحة سريعة'],
       products: ['إدارة المنتجات', 'إضافة وتعديل وحذف المنتجات'],
+      hero: ['صور الصفحة الرئيسية', 'إضافة وحذف صور السلايدر الرئيسي'],
       pages: ['إدارة صفحات الموقع', 'تعديل صفحات التدريب والبحث العلمي والأخبار'],
       quotes: ['طلبات عروض الأسعار', 'إدارة الطلبات الواردة'],
       users: ['إدارة المستخدمين', 'إضافة وإدارة مستخدمي الموقع واللوحة']
@@ -814,6 +856,7 @@
 
     if (name === 'overview') loadOverview();
     if (name === 'products') renderProductsTable();
+    if (name === 'hero') renderHeroSlidesTable();
     if (name === 'pages') renderSitePagesTable();
     if (name === 'quotes') renderQuotesTable();
     if (name === 'users') renderUsersTable();
@@ -934,6 +977,84 @@
           <button class="btn btn-sm btn-danger" onclick="deleteProduct(${p.id})">🗑️</button>
         </td>
       </tr>`).join('');
+  }
+
+  // HERO SLIDES
+  function renderHeroSlidesTable() {
+    const slides = DB.getHeroSlides();
+    document.getElementById('heroSlidesTable').innerHTML = slides.length === 0
+      ? '<tr><td colspan="4" style="text-align:center; color:var(--gray); padding:30px;">لا توجد صور للسلايدر</td></tr>'
+      : slides.map(slide => `
+      <tr>
+        <td style="width:120px;"><div style="width:100px; height:60px; background:var(--dark3); overflow:hidden;">${productImageMarkup(slide.image)}</div></td>
+        <td style="color:var(--white);">${slide.title || '—'}</td>
+        <td>${slide.createdAt ? new Date(slide.createdAt).toLocaleDateString('ar-EG') : '—'}</td>
+        <td><button class="btn btn-sm btn-danger" onclick="deleteHeroSlide(${slide.id})">🗑️ حذف</button></td>
+      </tr>`).join('');
+  }
+
+  function previewHeroSlideImage(input) {
+    const file = input.files && input.files[0];
+    const preview = document.getElementById('heroImagePreview');
+    const errEl = document.getElementById('heroFormError');
+    preview.innerHTML = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      errEl.textContent = '⚠️ من فضلك اختر ملف صورة فقط';
+      errEl.style.display = 'block';
+      input.value = '';
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      errEl.textContent = '⚠️ حجم الصورة يجب ألا يزيد عن 5MB';
+      errEl.style.display = 'block';
+      input.value = '';
+      return;
+    }
+    errEl.style.display = 'none';
+    preview.innerHTML = `<div style="width:220px; height:120px; border:1px solid rgba(201,169,110,0.25); overflow:hidden;">${productImageMarkup(URL.createObjectURL(file))}</div>`;
+  }
+
+  function addHeroSlide() {
+    const fileInput = document.getElementById('heroImageFile');
+    const file = fileInput.files && fileInput.files[0];
+    const errEl = document.getElementById('heroFormError');
+    if (!file) {
+      errEl.textContent = '⚠️ اختر صورة أولاً';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const uploaded = DB.uploadHeroSlideImage(file);
+    if (!uploaded || !uploaded.path) {
+      errEl.textContent = '❌ فشل رفع الصورة: ' + (DB.lastError || 'حاول مرة أخرى');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    const created = DB.addHeroSlide({
+      image: uploaded.path,
+      title: document.getElementById('heroImageTitle').value.trim(),
+    });
+    if (!created || !created.id) {
+      errEl.textContent = '❌ فشل حفظ الصورة: ' + (DB.lastError || 'تحقق من الاتصال');
+      errEl.style.display = 'block';
+      return;
+    }
+
+    fileInput.value = '';
+    document.getElementById('heroImageTitle').value = '';
+    document.getElementById('heroImagePreview').innerHTML = '';
+    errEl.style.display = 'none';
+    renderHeroSlidesTable();
+    showToast('✅ تم إضافة صورة السلايدر');
+  }
+
+  function deleteHeroSlide(id) {
+    if (!confirm('هل أنت متأكد من حذف هذه الصورة؟')) return;
+    DB.deleteHeroSlide(id);
+    renderHeroSlidesTable();
+    showToast('🗑️ تم حذف الصورة');
   }
 
   // SITE PAGES TABLE

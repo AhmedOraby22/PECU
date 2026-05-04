@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminUser;
+use App\Models\HeroSlide;
 use App\Models\Product;
 use App\Models\Quote;
 use App\Models\SitePage;
@@ -62,6 +63,11 @@ class LegacyApiController extends Controller
                 'getSitePage' => $this->getSitePage((string) $request->query('slug', $body['slug'] ?? '')),
                 'updateSitePage' => $this->requireKey($request) ?: $this->updateSitePage($body),
                 'uploadSitePageImage' => $this->requireKey($request) ?: $this->uploadSitePageImage($request),
+
+                'getHeroSlides' => response()->json(HeroSlide::query()->orderBy('sort_order')->orderBy('id')->get()),
+                'addHeroSlide' => $this->requireKey($request) ?: $this->addHeroSlide($body),
+                'deleteHeroSlide' => $this->requireKey($request) ?: $this->deleteHeroSlide($body),
+                'uploadHeroSlideImage' => $this->requireKey($request) ?: $this->uploadHeroSlideImage($request),
 
                 'getUsers' => $this->requireKey($request) ?: response()->json(
                     User::query()->select(['id', 'full_name', 'email', 'phone', 'role', 'created_at'])->orderByDesc('id')->get()
@@ -201,6 +207,11 @@ class LegacyApiController extends Controller
         return $this->uploadPublicImage($request, 'pages', 'page');
     }
 
+    private function uploadHeroSlideImage(Request $request)
+    {
+        return $this->uploadPublicImage($request, 'hero', 'hero');
+    }
+
     private function uploadPublicImage(Request $request, string $folder, string $prefix)
     {
         $file = $request->file('image');
@@ -301,6 +312,31 @@ class LegacyApiController extends Controller
         }
 
         return array_slice($links, 0, 20);
+    }
+
+    private function addHeroSlide(array $body)
+    {
+        $image = trim((string) ($body['image'] ?? ''));
+        if ($image === '') {
+            return response()->json(['error' => 'Image is required'], 422);
+        }
+
+        $maxSort = (int) HeroSlide::query()->max('sort_order');
+        $row = HeroSlide::create([
+            'image' => $image,
+            'title' => (string) ($body['title'] ?? ''),
+            'sort_order' => $maxSort + 1,
+            'active' => true,
+        ]);
+
+        return response()->json($row->fresh() ?? ['id' => $row->id]);
+    }
+
+    private function deleteHeroSlide(array $body)
+    {
+        $id = (int) ($body['id'] ?? 0);
+        HeroSlide::query()->whereKey($id)->delete();
+        return response()->json(['ok' => true]);
     }
 
     private function addQuote(array $body)

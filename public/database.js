@@ -168,6 +168,27 @@ const DB = {
     this._request('POST', 'deleteProduct', { id: parseInt(id, 10) });
   },
 
+  // Hero slides
+  getHeroSlides() {
+    const rows = this._request('GET', 'getHeroSlides') || [];
+    return rows.map((s) => ({
+      ...s,
+      sortOrder: s.sortOrder ?? s.sort_order ?? 0,
+      active: !!(s.active === true || s.active === 1 || s.active === '1'),
+      createdAt: s.createdAt ?? s.created_at ?? null,
+      updatedAt: s.updatedAt ?? s.updated_at ?? null,
+    }));
+  },
+  addHeroSlide(data) {
+    return this._request('POST', 'addHeroSlide', data) || null;
+  },
+  deleteHeroSlide(id) {
+    this._request('POST', 'deleteHeroSlide', { id: parseInt(id, 10) });
+  },
+  uploadHeroSlideImage(file) {
+    return this._uploadImage('uploadHeroSlideImage', file, 'تعذر رفع صورة السلايدر');
+  },
+
   // Quotes
   getQuotes() {
     const rows = this._request('GET', 'getQuotes') || [];
@@ -196,10 +217,13 @@ const DB = {
     return this._request('POST', 'updateSitePage', { slug, ...data }) || null;
   },
   uploadSitePageImage(file) {
+    return this._uploadImage('uploadSitePageImage', file, 'تعذر رفع صورة الصفحة');
+  },
+  _uploadImage(action, file, fallbackError) {
     this.lastError = '';
     try {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${this.apiBase}?action=uploadSitePageImage`, false);
+      xhr.open('POST', `${this.apiBase}?action=${encodeURIComponent(action)}`, false);
       const form = new FormData();
       form.append('image', file);
       xhr.send(form);
@@ -221,8 +245,8 @@ const DB = {
       }
       return null;
     } catch (err) {
-      this.lastError = 'تعذر رفع صورة الصفحة';
-      console.error('Site page image upload failed:', err);
+      this.lastError = fallbackError;
+      console.error(`${action} failed:`, err);
       return null;
     }
   },
