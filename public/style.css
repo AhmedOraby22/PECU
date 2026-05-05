@@ -78,10 +78,24 @@ body.dark-theme .navbar {
 }
 
 .nav-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-logo-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  display: block;
+  transition: var(--transition);
+}
+
+.navbar.scrolled .nav-logo-img {
+  width: 52px;
+  height: 52px;
 }
 
 .nav-logo .logo-main {
@@ -1158,10 +1172,13 @@ body.dark-theme .modal-overlay {
     padding: 0 18px;
   }
   .navbar.scrolled { height: 62px; }
-  .nav-logo .logo-main { font-size: 23px; }
-  .nav-logo .logo-sub {
-    font-size: 8px;
-    letter-spacing: 1px;
+  .nav-logo-img {
+    width: 52px;
+    height: 52px;
+  }
+  .navbar.scrolled .nav-logo-img {
+    width: 48px;
+    height: 48px;
   }
   .nav-links {
     display: none;
