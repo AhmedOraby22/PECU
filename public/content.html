@@ -49,6 +49,51 @@
       color: var(--black);
       transform: translateY(-1px);
     }
+    .catalog-grid {
+      max-width: 1100px;
+      margin: 34px auto 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+    }
+    .catalog-card {
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.14);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .catalog-card:hover {
+      border-color: rgba(201,169,110,0.45);
+      transform: translateY(-3px);
+    }
+    .catalog-card img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      display: block;
+      background: var(--dark3);
+    }
+    .catalog-card h3 {
+      color: var(--white);
+      font-size: 18px;
+      padding: 18px 20px;
+      line-height: 1.6;
+    }
+    .catalog-empty {
+      max-width: 920px;
+      margin: 24px auto 0;
+      padding: 22px;
+      color: var(--gray);
+      background: var(--dark2);
+      border: 1px solid rgba(201,169,110,0.12);
+      text-align: center;
+    }
+    @media (max-width: 900px) {
+      .catalog-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .catalog-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -62,9 +107,9 @@
     <li><a href="index.html">الرئيسية</a></li>
     <li><a href="products.html">المنتجات</a></li>
     <li><a href="content.html?slug=scientific-research" data-page-slug="scientific-research">البحث العلمي</a></li>
-    <li><a href="content.html?slug=design-your-furniture" data-page-slug="design-your-furniture">صمم أثاثك</a></li>
-    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريب الطلاب</a></li>
-    <li><a href="content.html?slug=news" data-page-slug="news">أخبارنا</a></li>
+    <li><a href="content.html?slug=design-your-furniture" data-page-slug="design-your-furniture">صمم أثاثك الأن</a></li>
+    <li><a href="content.html?slug=student-training" data-page-slug="student-training">تدريبات الطلاب</a></li>
+    <li><a href="content.html?slug=news" data-page-slug="news">الكتالوج</a></li>
     <li><a href="quote.html">طلب عرض سعر</a></li>
     <li><a href="about.html">من نحن</a></li>
     <li><a href="contact.html">تواصل معنا</a></li>
@@ -86,6 +131,8 @@
   </div>
   <div id="pageBody" class="content-body">جاري تحميل المحتوى...</div>
   <div id="pageLinks" class="content-links" style="display:none;"></div>
+  <div id="catalogGrid" class="catalog-grid" style="display:none;"></div>
+  <div id="catalogEmpty" class="catalog-empty" style="display:none;">لم يتم إضافة صور للكتالوج بعد.</div>
 </section>
 
 <footer class="footer" style="margin-top:0;">
@@ -129,10 +176,18 @@
     document.getElementById('pageSummary').textContent = '';
     document.getElementById('pageBody').textContent = 'هذه الصفحة غير متاحة حالياً.';
   } else {
-    document.title = `${page.navLabel || page.title} — PECU`;
-    document.getElementById('pageTitle').textContent = page.title || page.navLabel;
-    document.getElementById('pageSummary').textContent = page.summary || '';
-    document.getElementById('pageBody').textContent = page.body || '';
+    const isCatalogPage = slug === 'news';
+    const pageTitle = isCatalogPage && (!page.title || page.title === 'أخبارنا') ? 'الكتالوج' : (page.title || page.navLabel);
+    const pageSummary = isCatalogPage && (!page.summary || page.summary.includes('أخبار'))
+      ? 'تصفح صور كتالوج الوحدة وأحدث الأعمال المتاحة للعرض.'
+      : (page.summary || '');
+    const pageBody = isCatalogPage && (!page.body || page.body.includes('الأخبار'))
+      ? 'يمكنك إضافة صور الكتالوج وأسمائها من لوحة التحكم لتظهر هنا مباشرة لزوار الموقع.'
+      : (page.body || '');
+    document.title = `${pageTitle} — PECU`;
+    document.getElementById('pageTitle').textContent = pageTitle;
+    document.getElementById('pageSummary').textContent = pageSummary;
+    document.getElementById('pageBody').textContent = pageBody;
     if (page.image) {
       document.getElementById('pageImage').src = page.image;
       document.getElementById('pageImageWrap').style.display = 'block';
@@ -143,9 +198,24 @@
         const url = String(link.url || '');
         const isExternal = /^(https?:)?\/\//i.test(url);
         const target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-        return `<a class="content-link" href="${escapeHtml(url)}"${target}>${escapeHtml(link.label)}</a>`;
+        const label = slug === 'design-your-furniture' ? 'صمم الأن' : link.label;
+        return `<a class="content-link" href="${escapeHtml(url)}"${target}>${escapeHtml(label)}</a>`;
       }).join('');
       document.getElementById('pageLinks').style.display = 'flex';
+    }
+    if (isCatalogPage) {
+      const catalogItems = DB.getCatalogItems();
+      if (catalogItems.length) {
+        document.getElementById('catalogGrid').innerHTML = catalogItems.map(item => `
+          <article class="catalog-card">
+            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}">
+            <h3>${escapeHtml(item.name)}</h3>
+          </article>
+        `).join('');
+        document.getElementById('catalogGrid').style.display = 'grid';
+      } else {
+        document.getElementById('catalogEmpty').style.display = 'block';
+      }
     }
   }
 </script>

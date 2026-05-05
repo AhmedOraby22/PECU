@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdminUser;
+use App\Models\CatalogItem;
 use App\Models\HeroSlide;
 use App\Models\Product;
 use App\Models\Quote;
@@ -68,6 +69,11 @@ class LegacyApiController extends Controller
                 'addHeroSlide' => $this->requireKey($request) ?: $this->addHeroSlide($body),
                 'deleteHeroSlide' => $this->requireKey($request) ?: $this->deleteHeroSlide($body),
                 'uploadHeroSlideImage' => $this->requireKey($request) ?: $this->uploadHeroSlideImage($request),
+
+                'getCatalogItems' => response()->json(CatalogItem::query()->where('active', true)->orderBy('sort_order')->orderByDesc('id')->get()),
+                'addCatalogItem' => $this->requireKey($request) ?: $this->addCatalogItem($body),
+                'deleteCatalogItem' => $this->requireKey($request) ?: $this->deleteCatalogItem($body),
+                'uploadCatalogImage' => $this->requireKey($request) ?: $this->uploadCatalogImage($request),
 
                 'getUsers' => $this->requireKey($request) ?: response()->json(
                     User::query()->select(['id', 'full_name', 'email', 'phone', 'role', 'created_at'])->orderByDesc('id')->get()
@@ -212,6 +218,11 @@ class LegacyApiController extends Controller
         return $this->uploadPublicImage($request, 'hero', 'hero');
     }
 
+    private function uploadCatalogImage(Request $request)
+    {
+        return $this->uploadPublicImage($request, 'catalog', 'catalog');
+    }
+
     private function uploadPublicImage(Request $request, string $folder, string $prefix)
     {
         $file = $request->file('image');
@@ -336,6 +347,32 @@ class LegacyApiController extends Controller
     {
         $id = (int) ($body['id'] ?? 0);
         HeroSlide::query()->whereKey($id)->delete();
+        return response()->json(['ok' => true]);
+    }
+
+    private function addCatalogItem(array $body)
+    {
+        $name = trim((string) ($body['name'] ?? ''));
+        $image = trim((string) ($body['image'] ?? ''));
+        if ($name === '' || $image === '') {
+            return response()->json(['error' => 'Name and image are required'], 422);
+        }
+
+        $maxSort = (int) CatalogItem::query()->max('sort_order');
+        $row = CatalogItem::create([
+            'name' => mb_substr($name, 0, 255),
+            'image' => $image,
+            'sort_order' => $maxSort + 1,
+            'active' => true,
+        ]);
+
+        return response()->json($row->fresh() ?? ['id' => $row->id]);
+    }
+
+    private function deleteCatalogItem(array $body)
+    {
+        $id = (int) ($body['id'] ?? 0);
+        CatalogItem::query()->whereKey($id)->delete();
         return response()->json(['ok' => true]);
     }
 

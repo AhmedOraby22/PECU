@@ -48,6 +48,17 @@ const DB = {
     };
   },
 
+  _normalizeCatalogItem(item) {
+    if (!item || !item.id) return item;
+    return {
+      ...item,
+      sortOrder: item.sortOrder ?? item.sort_order ?? 0,
+      active: !!(item.active === true || item.active === 1 || item.active === '1'),
+      createdAt: item.createdAt ?? item.created_at ?? null,
+      updatedAt: item.updatedAt ?? item.updated_at ?? null,
+    };
+  },
+
   _request(method, action, payload = null) {
     this.lastError = '';
     try {
@@ -189,6 +200,21 @@ const DB = {
     return this._uploadImage('uploadHeroSlideImage', file, 'تعذر رفع صورة السلايدر');
   },
 
+  // Catalog
+  getCatalogItems() {
+    const rows = this._request('GET', 'getCatalogItems') || [];
+    return rows.map((item) => this._normalizeCatalogItem(item));
+  },
+  addCatalogItem(data) {
+    return this._request('POST', 'addCatalogItem', data) || null;
+  },
+  deleteCatalogItem(id) {
+    this._request('POST', 'deleteCatalogItem', { id: parseInt(id, 10) });
+  },
+  uploadCatalogImage(file) {
+    return this._uploadImage('uploadCatalogImage', file, 'تعذر رفع صورة الكتالوج');
+  },
+
   // Quotes
   getQuotes() {
     const rows = this._request('GET', 'getQuotes') || [];
@@ -265,7 +291,15 @@ const DB = {
       }
 
       item.style.display = '';
-      link.textContent = page.navLabel || link.textContent;
+      let navLabel = page.navLabel;
+      if (page.slug === 'news' && (!navLabel || navLabel === 'أخبارنا')) {
+        navLabel = 'الكتالوج';
+      } else if (page.slug === 'design-your-furniture' && navLabel === 'صمم أثاثك') {
+        navLabel = 'صمم أثاثك الأن';
+      } else if (page.slug === 'student-training' && navLabel === 'تدريب الطلاب') {
+        navLabel = 'تدريبات الطلاب';
+      }
+      link.textContent = navLabel || link.textContent;
       link.href = `content.html?slug=${encodeURIComponent(page.slug)}`;
       link.classList.toggle('active', currentSlug === page.slug);
     });
