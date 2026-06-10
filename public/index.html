@@ -56,20 +56,6 @@
       <a href="quote.html" class="btn btn-outline">طلب عرض سعر</a>
     </div>
   </div>
-  <div class="hero-stats">
-    <div class="hero-stat">
-      <h3>+500</h3>
-      <p>مشروع مكتمل</p>
-    </div>
-    <div class="hero-stat">
-      <h3>15+</h3>
-      <p>سنة خبرة</p>
-    </div>
-    <div class="hero-stat">
-      <h3>98%</h3>
-      <p>رضا العملاء</p>
-    </div>
-  </div>
   <div class="hero-scroll">
     <div class="scroll-line"></div>
     <span>اكتشف</span>
@@ -86,11 +72,6 @@
       <div class="cat-icon">🛋️</div>
       <div class="cat-name">غرفة المعيشة</div>
       <div class="cat-count" id="cat-living">0 منتج</div>
-    </div>
-    <div class="cat-card reveal" onclick="filterCategory('bedroom')">
-      <div class="cat-icon">🛏️</div>
-      <div class="cat-name">غرفة النوم</div>
-      <div class="cat-count" id="cat-bedroom">0 منتج</div>
     </div>
     <div class="cat-card reveal" onclick="filterCategory('dining')">
       <div class="cat-icon">🍽️</div>
@@ -307,7 +288,7 @@
   };
 
   function isUploadedProductImage(value) {
-    return typeof value === 'string' && /^(uploads\/|\/uploads\/|https?:\/\/|data:image\/|blob:)/i.test(value);
+    return typeof value === 'string' && /^(uploads\/|\/uploads\/|\/?api\.php\?|https?:\/\/|data:image\/|blob:)/i.test(value);
   }
 
   function productImageMarkup(value) {

@@ -91,7 +91,7 @@
   let currentFilter = 'all';
 
   function isUploadedProductImage(value) {
-    return typeof value === 'string' && /^(uploads\/|\/uploads\/|https?:\/\/|data:image\/|blob:)/i.test(value);
+    return typeof value === 'string' && /^(uploads\/|\/uploads\/|\/?api\.php\?|https?:\/\/|data:image\/|blob:)/i.test(value);
   }
 
   function productImageMarkup(value) {

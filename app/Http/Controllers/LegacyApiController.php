@@ -74,6 +74,7 @@ class LegacyApiController extends Controller
                 'addCatalogItem' => $this->requireKey($request) ?: $this->addCatalogItem($body),
                 'deleteCatalogItem' => $this->requireKey($request) ?: $this->deleteCatalogItem($body),
                 'uploadCatalogImage' => $this->requireKey($request) ?: $this->uploadCatalogImage($request),
+                'serveUpload' => $this->serveUpload((string) $request->query('path', '')),
 
                 'getUsers' => $this->requireKey($request) ?: response()->json(
                     User::query()->select(['id', 'full_name', 'email', 'phone', 'role', 'created_at'])->orderByDesc('id')->get()
@@ -91,6 +92,11 @@ class LegacyApiController extends Controller
                 default => response()->json(['error' => 'Unknown action'], 400),
             };
         } catch (\Throwable $e) {
+            Log::error('Legacy API request failed', [
+                'action' => $action,
+                'method' => $request->method(),
+                'error' => $e->getMessage(),
+            ]);
             $payload = ['error' => 'Server error'];
             if ((bool) config('app.debug')) {
                 $payload['details'] = $e->getMessage();
@@ -230,7 +236,7 @@ class LegacyApiController extends Controller
             return response()->json(['error' => 'Image file is required'], 422);
         }
 
-        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+        $allowedMimes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'image/jfif', 'image/png', 'image/webp', 'image/gif'];
         if (!in_array((string) $file->getMimeType(), $allowedMimes, true)) {
             return response()->json(['error' => 'Only JPG, PNG, WEBP, and GIF images are allowed'], 422);
         }
@@ -240,7 +246,7 @@ class LegacyApiController extends Controller
         }
 
         $extension = strtolower((string) $file->getClientOriginalExtension());
-        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif'], true)) {
+        if (!in_array($extension, ['jpg', 'jpeg', 'jfif', 'png', 'webp', 'gif'], true)) {
             $extension = match ((string) $file->getMimeType()) {
                 'image/png' => 'png',
                 'image/webp' => 'webp',
@@ -248,17 +254,85 @@ class LegacyApiController extends Controller
                 default => 'jpg',
             };
         }
-
-        $uploadDir = public_path('uploads/' . $folder);
-        if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+        if ($extension === 'jfif') {
+            $extension = 'jpg';
         }
 
-        $fileName = $prefix . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
-        $file->move($uploadDir, $fileName);
+        $uploadDir = public_path('uploads/' . $folder);
+        if (!is_dir($uploadDir) && !@mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+            Log::error('Failed to create image upload directory', [
+                'folder' => $folder,
+                'path' => $uploadDir,
+            ]);
+            return response()->json(['error' => 'Failed to prepare upload directory'], 500);
+        }
 
-        return response()->json([
-            'path' => 'uploads/' . $folder . '/' . $fileName,
+        try {
+            $random = bin2hex(random_bytes(4));
+        } catch (\Throwable) {
+            $random = substr(sha1(uniqid($prefix, true)), 0, 8);
+        }
+
+        $fileName = $prefix . '_' . date('YmdHis') . '_' . $random . '.' . $extension;
+        try {
+            $file->move($uploadDir, $fileName);
+            return response()->json([
+                'path' => 'uploads/' . $folder . '/' . $fileName,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Image upload move failed', [
+                'folder' => $folder,
+                'path' => $uploadDir,
+                'file_name' => $fileName,
+                'error' => $e->getMessage(),
+            ]);
+
+            $storageRelativeDir = 'uploads/' . $folder;
+            $storageDir = storage_path('app/' . $storageRelativeDir);
+            if (!is_dir($storageDir) && !@mkdir($storageDir, 0755, true) && !is_dir($storageDir)) {
+                Log::error('Failed to create fallback image upload directory', [
+                    'folder' => $folder,
+                    'path' => $storageDir,
+                ]);
+                return response()->json(['error' => 'Failed to save uploaded image'], 500);
+            }
+
+            $tmpPath = $file->getRealPath();
+            $storageTarget = $storageDir . DIRECTORY_SEPARATOR . $fileName;
+            if (!is_string($tmpPath) || $tmpPath === '' || !is_file($tmpPath) || !@copy($tmpPath, $storageTarget)) {
+                Log::error('Fallback image upload copy failed', [
+                    'folder' => $folder,
+                    'tmp_path' => $tmpPath,
+                    'target_path' => $storageTarget,
+                ]);
+                return response()->json(['error' => 'Failed to save uploaded image'], 500);
+            }
+
+            return response()->json([
+                'path' => '/api.php?action=serveUpload&path=' . rawurlencode($storageRelativeDir . '/' . $fileName),
+            ]);
+        }
+    }
+
+    private function serveUpload(string $path)
+    {
+        $path = ltrim(trim($path), '/');
+        if ($path === '' || str_contains($path, '..') || !str_starts_with($path, 'uploads/')) {
+            return response()->json(['error' => 'Invalid path'], 400);
+        }
+
+        $fullPath = storage_path('app/' . $path);
+        if (!is_file($fullPath)) {
+            return response()->json(['error' => 'File not found'], 404);
+        }
+
+        $extension = strtolower((string) pathinfo($fullPath, PATHINFO_EXTENSION));
+        if (!in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp'], true)) {
+            return response()->json(['error' => 'Unsupported file type'], 415);
+        }
+
+        return response()->file($fullPath, [
+            'Cache-Control' => 'public, max-age=31536000',
         ]);
     }
 
